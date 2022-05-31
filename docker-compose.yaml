@@ -1,0 +1,6 @@
+version: "3.1"
+
+services:
+  go-http-server:
+    build: .
+    command: --port 8081
