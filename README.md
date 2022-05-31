@@ -25,7 +25,7 @@ RUN npm ci
 ADD * ./
 RUN npm run build
 
-FROM spa-to-http:latest
+FROM devforth/spa-to-http:latest
 COPY --from=builder /code/dist/ static/
 ```
 
