@@ -93,6 +93,6 @@ func GetParams() *Params {
 		Directory:          coalesce(cliParams.Directory, envParams.Directory, "."),
 		DirectoryListing:   coalesce(cliParams.DirectoryListing, envParams.DirectoryListing, false),
 		CacheControlMaxAge: coalesce(cliParams.CacheControlMaxAge, envParams.CacheControlMaxAge, 604800),
-		SpaMode:            coalesce(cliParams.SpaMode, envParams.SpaMode, false),
+		SpaMode:            coalesce(cliParams.SpaMode, envParams.SpaMode, true),
 	}
 }
