@@ -9,6 +9,6 @@ func main() {
 	params := param.ParseCli()
 
 	newApp := app.NewApp(params)
-	newApp.CompressFiles()
+	go newApp.CompressFiles()
 	newApp.Listen()
 }
