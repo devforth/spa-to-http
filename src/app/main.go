@@ -120,7 +120,7 @@ func (app *App) HandleFunc(w http.ResponseWriter, r *http.Request) {
 
 func (app *App) Listen() {
 	app.server = &http.Server{
-		Addr:    fmt.Sprintf("%s:%d", app.params.Host, app.params.Port),
+		Addr:    fmt.Sprintf("%s:%d", app.params.Address, app.params.Port),
 		Handler: http.HandlerFunc(app.HandleFunc),
 	}
 

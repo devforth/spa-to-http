@@ -8,7 +8,7 @@ import (
 )
 
 type Params struct {
-	Host               string `env:"HOST"`
+	Address            string `env:"ADDRESS"`
 	Port               int    `env:"PORT"`
 	Gzip               bool   `env:"GZIP"`
 	Brotli             bool   `env:"BROTLI"`
@@ -22,7 +22,7 @@ type Params struct {
 func parseCli() *Params {
 	parser := argparse.NewParser("go-http-server", "Simple http server written in go for spa serving")
 
-	host := parser.String("", "host", &argparse.Options{})
+	host := parser.String("a", "address", &argparse.Options{})
 	port := parser.Int("p", "port", &argparse.Options{})
 	gzip := parser.Flag("g", "gzip", &argparse.Options{})
 	brotli := parser.Flag("b", "brotli", &argparse.Options{})
@@ -42,7 +42,7 @@ func parseCli() *Params {
 	}
 
 	params := Params{
-		Host:               *host,
+		Address:            *host,
 		Port:               *port,
 		Gzip:               *gzip,
 		Brotli:             *brotli,
@@ -85,7 +85,7 @@ func GetParams() *Params {
 	cliParams := parseCli()
 
 	return &Params{
-		Host:               coalesce(cliParams.Host, envParams.Host, "0.0.0.0"),
+		Address:            coalesce(cliParams.Address, envParams.Address, "0.0.0.0"),
 		Port:               coalesce(cliParams.Port, envParams.Port, 8080),
 		Gzip:               coalesce(cliParams.Gzip, envParams.Gzip, false),
 		Brotli:             coalesce(cliParams.Brotli, envParams.Brotli, false),
