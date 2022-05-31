@@ -15,7 +15,7 @@ type Params struct {
 	Threshold          int64  `env:"THRESHOLD"`
 	Directory          string `env:"DIRECTORY"`
 	DirectoryListing   bool   `env:"DIR_LISTING"`
-	CacheControlMaxAge int    `env:"CACHE_CONTROL_MAX_AGE"`
+	CacheControlMaxAge int    `env:"CACHE_MAX_AGE"`
 	SpaMode            bool   `env:"SPA_MODE"`
 }
 
@@ -29,7 +29,7 @@ func parseCli() *Params {
 	threshold := parser.Int("", "threshold", &argparse.Options{})
 	directory := parser.String("d", "directory", &argparse.Options{})
 	dirListing := parser.Flag("", "dir-listing", &argparse.Options{})
-	cacheControlMaxAge := parser.Int("", "cache-control-max-age", &argparse.Options{})
+	cacheControlMaxAge := parser.Int("", "cache-max-age", &argparse.Options{})
 	spaMode := parser.Flag("", "spa", &argparse.Options{})
 
 	err := parser.Parse(os.Args)
