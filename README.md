@@ -9,7 +9,7 @@ Lightweight tiny zero-configuration SPA HTTP server. Serves SPA bundle on port 8
 * Open-Source commertial friendly MIT license
 * Plays well with all popular SPA frameworks and libraries: Vue, React, Angular and all bundlers: Webpack/Vite.
 * Optimal statics caching out of the box: no-cache on index.html file to auto-update caches and infinite max-age for all other resources which have hash-URLs in all SPA frameworks.
-* Created by Devforth 💪🏼
+* Created and maintained by Devforth 💪🏼
 
 
 
