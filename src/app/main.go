@@ -15,11 +15,11 @@ import (
 )
 
 type App struct {
-	params *param.CliParams
+	params *param.Params
 	server *http.Server
 }
 
-func NewApp(params *param.CliParams) App {
+func NewApp(params *param.Params) App {
 	return App{params: params, server: nil}
 }
 

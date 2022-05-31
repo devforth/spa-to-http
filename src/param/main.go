@@ -3,37 +3,34 @@ package param
 import (
 	"fmt"
 	"github.com/akamensky/argparse"
+	"github.com/caarlos0/env/v6"
 	"os"
 )
 
-type CliParams struct {
-	Host               string
-	Port               int
-	Gzip               bool
-	Brotli             bool
-	Threshold          int64
-	Directory          string
-	DirectoryListing   bool
-	CacheControlMaxAge int
-	SpaMode            bool
+type Params struct {
+	Host               string `env:"HOST"`
+	Port               int    `env:"PORT"`
+	Gzip               bool   `env:"GZIP"`
+	Brotli             bool   `env:"BROTLI"`
+	Threshold          int64  `env:"THRESHOLD"`
+	Directory          string `env:"DIRECTORY"`
+	DirectoryListing   bool   `env:"DIR_LISTING"`
+	CacheControlMaxAge int    `env:"CACHE_CONTROL_MAX_AGE"`
+	SpaMode            bool   `env:"SPA_MODE"`
 }
 
-func (cliParams *CliParams) String() string {
-	return fmt.Sprintf("CliParams{port:%d gzip:%v brotli:%v}", cliParams.Port, cliParams.Gzip, cliParams.Brotli)
-}
-
-func ParseCli() *CliParams {
+func parseCli() *Params {
 	parser := argparse.NewParser("go-http-server", "Simple http server written in go for spa serving")
 
-	host := parser.String("", "host", &argparse.Options{Default: "0.0.0.0"})
-	port := parser.Int("p", "port", &argparse.Options{Default: 8080})
-	gzip := parser.Flag("g", "gzip", &argparse.Options{Default: false})
-	threshold := parser.Int("", "threshold", &argparse.Options{Default: 1024})
-	brotli := parser.Flag("b", "brotli", &argparse.Options{Default: false})
-	directory := parser.String("d", "directory", &argparse.Options{Default: "."})
-	dirListing := parser.Flag("", "dir-listing", &argparse.Options{Default: false})
-	cacheControlMaxAge := parser.Int("", "cache-control-max-age", &argparse.Options{Default: 604800})
-	spaMode := parser.Flag("", "spa", &argparse.Options{Default: false})
+	host := parser.String("", "host", &argparse.Options{})
+	port := parser.Int("p", "port", &argparse.Options{})
+	gzip := parser.Flag("g", "gzip", &argparse.Options{})
+	threshold := parser.Int("", "threshold", &argparse.Options{})
+	brotli := parser.Flag("b", "brotli", &argparse.Options{})
+	directory := parser.String("d", "directory", &argparse.Options{})
+	dirListing := parser.Flag("", "dir-listing", &argparse.Options{})
+	cacheControlMaxAge := parser.Int("", "cache-control-max-age", &argparse.Options{})
+	spaMode := parser.Flag("", "spa", &argparse.Options{})
 
 	err := parser.Parse(os.Args)
 	if err != nil {
@@ -44,7 +41,7 @@ func ParseCli() *CliParams {
 		panic("SPA mode and directory listing cannot be enabled at the same time")
 	}
 
-	params := CliParams{
+	params := Params{
 		Host:               *host,
 		Port:               *port,
 		Gzip:               *gzip,
@@ -57,4 +54,45 @@ func ParseCli() *CliParams {
 	}
 
 	return &params
+}
+
+func parseEnv() *Params {
+	params := Params{}
+
+	err := env.Parse(&params)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(params)
+
+	return &params
+}
+
+func coalesce[T comparable](items ...T) T {
+	var result T
+
+	for _, item := range items {
+		if item != result {
+			return item
+		}
+	}
+	return result
+}
+
+func GetParams() *Params {
+	envParams := parseEnv()
+	cliParams := parseCli()
+
+	return &Params{
+		Host:               coalesce(cliParams.Host, envParams.Host, "0.0.0.0"),
+		Port:               coalesce(cliParams.Port, envParams.Port, 8080),
+		Gzip:               coalesce(cliParams.Gzip, envParams.Gzip, false),
+		Brotli:             coalesce(cliParams.Brotli, envParams.Brotli, false),
+		Threshold:          coalesce(cliParams.Threshold, envParams.Threshold, 1024),
+		Directory:          coalesce(cliParams.Directory, envParams.Directory, "."),
+		DirectoryListing:   coalesce(cliParams.DirectoryListing, envParams.DirectoryListing, false),
+		CacheControlMaxAge: coalesce(cliParams.CacheControlMaxAge, envParams.CacheControlMaxAge, 604800),
+		SpaMode:            coalesce(cliParams.SpaMode, envParams.SpaMode, false),
+	}
 }

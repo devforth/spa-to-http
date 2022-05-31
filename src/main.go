@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	params := param.ParseCli()
+	params := param.GetParams()
 
 	newApp := app.NewApp(params)
 	go newApp.CompressFiles()
