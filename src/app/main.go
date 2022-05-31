@@ -27,7 +27,7 @@ func (app *App) CompressFiles() {
 	if !app.params.Gzip && !app.params.Brotli {
 		return
 	}
-	err := filepath.Walk(app.params.Directory, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(app.params.Directory, func(filePath string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -36,11 +36,16 @@ func (app *App) CompressFiles() {
 			return nil
 		}
 
+		ext := path.Ext(filePath)
+		if ext == ".br" || ext == ".gz" {
+			return nil
+		}
+
 		if info.Size() > app.params.Threshold {
-			data, _ := ioutil.ReadFile(path)
+			data, _ := ioutil.ReadFile(filePath)
 
 			if app.params.Gzip {
-				newName := path + ".gz"
+				newName := filePath + ".gz"
 				file, _ := os.Create(newName)
 
 				writer := gzip.NewWriter(file)
@@ -50,7 +55,7 @@ func (app *App) CompressFiles() {
 			}
 
 			if app.params.Brotli {
-				newName := path + ".br"
+				newName := filePath + ".br"
 				file, _ := os.Create(newName)
 
 				writer := brotli.NewWriter(file)
