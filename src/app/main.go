@@ -24,7 +24,7 @@ func NewApp(params *param.Params) App {
 }
 
 func (app *App) CompressFiles() {
-	if !app.params.Gzip && !app.params.Brotli {
+	if !app.params.Gzip.ValueOrZero() && !app.params.Brotli.ValueOrZero() {
 		return
 	}
 	err := filepath.Walk(app.params.Directory, func(filePath string, info os.FileInfo, err error) error {
@@ -44,7 +44,7 @@ func (app *App) CompressFiles() {
 		if info.Size() > app.params.Threshold {
 			data, _ := ioutil.ReadFile(filePath)
 
-			if app.params.Gzip {
+			if app.params.Gzip.ValueOrZero() {
 				newName := filePath + ".gz"
 				file, _ := os.Create(newName)
 
@@ -54,7 +54,7 @@ func (app *App) CompressFiles() {
 				_ = writer.Close()
 			}
 
-			if app.params.Brotli {
+			if app.params.Brotli.ValueOrZero() {
 				newName := filePath + ".br"
 				file, _ := os.Create(newName)
 
@@ -80,15 +80,15 @@ func (app *App) HandleFunc(w http.ResponseWriter, r *http.Request) {
 	fileType := util.GetFileType(requestedPath)
 
 	if fileType == util.FileTypeDirectory {
-		if app.params.SpaMode {
+		if app.params.SpaMode.ValueOrZero() {
 			requestedPath = path.Join(app.params.Directory, "/index.html")
-		} else if !app.params.DirectoryListing {
+		} else if !app.params.DirectoryListing.ValueOrZero() {
 			requestedPath = path.Join(requestedPath, "/index.html")
 		}
 	}
 
 	if fileType == util.FileTypeNotExists {
-		if app.params.SpaMode {
+		if app.params.SpaMode.ValueOrZero() {
 			requestedPath = path.Join(app.params.Directory, "/index.html")
 			fileType = util.GetFileType(requestedPath)
 
@@ -104,8 +104,8 @@ func (app *App) HandleFunc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	acceptEncodingHeader := r.Header.Get("Accept-Encoding")
-	brotliApplicable := app.params.Brotli && (strings.Contains(acceptEncodingHeader, "*") || strings.Contains(acceptEncodingHeader, "br"))
-	gzipApplicable := app.params.Gzip && (strings.Contains(acceptEncodingHeader, "*") || strings.Contains(acceptEncodingHeader, "gzip"))
+	brotliApplicable := app.params.Brotli.ValueOrZero() && (strings.Contains(acceptEncodingHeader, "*") || strings.Contains(acceptEncodingHeader, "br"))
+	gzipApplicable := app.params.Gzip.ValueOrZero() && (strings.Contains(acceptEncodingHeader, "*") || strings.Contains(acceptEncodingHeader, "gzip"))
 
 	if brotliApplicable && util.GetFileType(requestedPath+".br") == util.FileTypeFile {
 		requestedPath = requestedPath + ".br"
