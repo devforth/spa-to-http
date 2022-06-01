@@ -21,12 +21,13 @@ Create `Dockerfile` in yoru SPA directory (near `package.json`):
 FROM node:16-alpine as builder
 WORKDIR /code/
 ADD package-lock.json .
+ADD package.json .
 RUN npm ci
-ADD * ./
+ADD . .
 RUN npm run build
 
-FROM spa-to-http:latest
-COPY --from=builder /code/dist/ static/
+FROM devforth/spa-to-http:latest
+COPY --from=builder /code/dist/ .
 ```
 
 ## Available Options:
@@ -39,5 +40,5 @@ COPY --from=builder /code/dist/ static/
 | THRESHOLD         | `--threshold <number>`                  | Threshold in bytes for gzip and brotli compressions                                                                                                                                                                                   | 1024     |
 | DIRECTORY         | `-d <string>` or `--directory <string>` | Directory to serve                                                                                                                                                                                                                    | `.`      |
 | DIRECTORY_LISTING | `--dir-lising`                          | Whether to show directory listing. SPA mode and directory listing cannot be enabled at the same time                                                                                                                                  | `false`  |
-| CACHE_MAX_AGE     | `--cache-max-age <number>`              | Set cache time (in seconds) for cache-control max-age header. To disable cache set to -1. `.html` files are not being cached                                                                                                          | 604800   |
-| SPA_MODE          | `--spa` or `--spa <bool>`               | Where to enable SPA mode. In SPA mode if file for requested path does not exists server returns index.html from root of serving directory. SPA mode and directory listing cannot be enabled at the same time                          | `true`   |
+| CACHE_MAX_AGE     | `--cache-max-age <number>`              | Set cache time (in seconds) for cache-control max-age header To disable cache set to -1. `.html` files are not being cached                                                                                                           | 604800   |
+| SPA_MODE          | `--spa` or `--spa <bool>`               | When SPA mode if file for requested path does not exists server returns index.html from root of serving directory. SPA mode and directory listing cannot be enabled at the same time                                                  | `true`   |
