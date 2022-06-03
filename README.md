@@ -1,6 +1,6 @@
 # spa-to-http
 
-Lightweight tiny zero-configuration SPA HTTP server. Serves SPA bundle on HTTP port which makes it play well with traefik
+Lightweight zero-configuration SPA HTTP server. Serves SPA bundle on HTTP port which makes it play well with traefik
 
 # Benefits
 
