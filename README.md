@@ -50,7 +50,7 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
 
   trfk-vue:
-    build: "frontend"
+    build: "spa" # name of the folder where Dockerfile is located
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.trfk-vue.rule=Host(`trfk-vue.localhost`)"
