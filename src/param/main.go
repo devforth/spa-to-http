@@ -48,8 +48,6 @@ func parseCli() *Params {
 		}
 	}
 
-	fmt.Println(args)
-
 	err := parser.Parse(args)
 	if err != nil {
 		fmt.Print(parser.Usage(err))

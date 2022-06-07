@@ -74,7 +74,7 @@ func (app *App) CompressFiles() {
 }
 
 func (app *App) HandleFunc(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("New request:\n Url: %s\n", r.URL)
+	//fmt.Printf("New request:\n Url: %s\n", r.URL)
 
 	requestedPath := path.Join(app.params.Directory, r.URL.Path)
 	fileType := util.GetFileType(requestedPath)
