@@ -66,16 +66,41 @@ services:
 
 How to enable Brotli compression:
 
-```
+```diff 
  trfk-vue:
     build: "spa"
-    command: --brotli
+++  command: --brotli
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.trfk-vue.rule=Host(`trfk-vue.localhost`)"
-      - "traefik.http.services.trfk-vue.loadbalancer.server.port=8080" # port inside of trfk-vue which should be used
-```      
+      - "traefik.http.services.trfk-vue.loadbalancer.server.port=8080"
+```
+How to change thresshold of small files which should not be compressed:
 
+```diff 
+ trfk-vue:
+    build: "spa"
+--  command: --brotli
+++  command: --brotli --threshold
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.trfk-vue.rule=Host(`trfk-vue.localhost`)"
+      - "traefik.http.services.trfk-vue.loadbalancer.server.port=8080"
+```
+
+How to run container on a custom port:
+
+
+```diff 
+ trfk-vue:
+    build: "spa"
+++  command: --brotli --port 8082
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.trfk-vue.rule=Host(`trfk-vue.localhost`)"
+--    - "traefik.http.services.trfk-vue.loadbalancer.server.port=8080"
+++    - "traefik.http.services.trfk-vue.loadbalancer.server.port=8082"
+```
 
 
 ## Available Options:
