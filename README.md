@@ -81,7 +81,7 @@ How to change thresshold of small files which should not be compressed:
  trfk-vue:
     build: "spa"
 --  command: --brotli
-++  command: --brotli --threshold
+++  command: --brotli --threshold 500
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.trfk-vue.rule=Host(`trfk-vue.localhost`)"
