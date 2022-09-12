@@ -102,6 +102,24 @@ How to run container on a custom port:
 ++    - "traefik.http.services.trfk-vue.loadbalancer.server.port=8082"
 ```
 
+Ignore caching for some specific resources, e.g. prevent Service Worker caching on CDNs like Cloudflare:
+
+How to run container on a custom port:
+
+
+```diff 
+ trfk-vue:
+    build: "spa"
+++  command: --brotli --port 8082 --ignore-cache-control-paths "/sw.js"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.trfk-vue.rule=Host(`trfk-vue.localhost`)"
+--    - "traefik.http.services.trfk-vue.loadbalancer.server.port=8080"
+++    - "traefik.http.services.trfk-vue.loadbalancer.server.port=8082"
+```
+
+
+
 
 ## Available Options:
 
