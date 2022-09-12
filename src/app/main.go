@@ -6,6 +6,7 @@ import (
 	"github.com/andybalholm/brotli"
 	"go-http-server/param"
 	"go-http-server/util"
+	"golang.org/x/exp/slices"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -99,7 +100,10 @@ func (app *App) HandleFunc(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	if path.Ext(requestedPath) != ".html" {
+
+	if slices.Contains(app.params.IgnoreCacheControlPaths, r.URL.Path) || path.Ext(requestedPath) == ".html" {
+		w.Header().Set("Cache-Control", "no-cache")
+	} else {
 		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d", app.params.CacheControlMaxAge))
 	}
 

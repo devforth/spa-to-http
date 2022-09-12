@@ -11,15 +11,16 @@ import (
 )
 
 type Params struct {
-	Address            string    `env:"ADDRESS"`
-	Port               int       `env:"PORT"`
-	Gzip               null.Bool `env:"GZIP"`
-	Brotli             null.Bool `env:"BROTLI"`
-	Threshold          int64     `env:"THRESHOLD"`
-	Directory          string    `env:"DIRECTORY"`
-	DirectoryListing   null.Bool `env:"DIR_LISTING"`
-	CacheControlMaxAge int       `env:"CACHE_MAX_AGE"`
-	SpaMode            null.Bool `env:"SPA_MODE"`
+	Address                 string    `env:"ADDRESS"`
+	Port                    int       `env:"PORT"`
+	Gzip                    null.Bool `env:"GZIP"`
+	Brotli                  null.Bool `env:"BROTLI"`
+	Threshold               int64     `env:"THRESHOLD"`
+	Directory               string    `env:"DIRECTORY"`
+	DirectoryListing        null.Bool `env:"DIR_LISTING"`
+	CacheControlMaxAge      int       `env:"CACHE_MAX_AGE"`
+	SpaMode                 null.Bool `env:"SPA_MODE"`
+	IgnoreCacheControlPaths []string  `env:"IGNORE_CACHE_CONTROL_PATHS" envSeparator:","`
 }
 
 func parseCli() *Params {
@@ -34,6 +35,7 @@ func parseCli() *Params {
 	dirListing := parser.Flag("", "dir-listing", &argparse.Options{})
 	cacheControlMaxAge := parser.Int("", "cache-max-age", &argparse.Options{})
 	spaModeString := parser.String("", "spa", &argparse.Options{})
+	ignoreCacheControlPathsStr := parser.String("", "ignore-cache-control-paths", &argparse.Options{})
 
 	args := os.Args
 	spaMode := null.NewBool(false, false)
@@ -66,16 +68,22 @@ func parseCli() *Params {
 		panic("SPA mode and directory listing cannot be enabled at the same time")
 	}
 
+	var ignoreCacheControlPaths []string
+	if *ignoreCacheControlPathsStr != "" {
+		ignoreCacheControlPaths = strings.Split(*ignoreCacheControlPathsStr, ",")
+	}
+
 	params := Params{
-		Address:            *host,
-		Port:               *port,
-		Gzip:               null.BoolFromPtr(gzip),
-		Brotli:             null.BoolFromPtr(brotli),
-		Threshold:          int64(*threshold),
-		Directory:          *directory,
-		DirectoryListing:   null.BoolFromPtr(dirListing),
-		CacheControlMaxAge: *cacheControlMaxAge,
-		SpaMode:            spaMode,
+		Address:                 *host,
+		Port:                    *port,
+		Gzip:                    null.BoolFromPtr(gzip),
+		Brotli:                  null.BoolFromPtr(brotli),
+		Threshold:               int64(*threshold),
+		Directory:               *directory,
+		DirectoryListing:        null.BoolFromPtr(dirListing),
+		CacheControlMaxAge:      *cacheControlMaxAge,
+		SpaMode:                 spaMode,
+		IgnoreCacheControlPaths: ignoreCacheControlPaths,
 	}
 
 	return &params
@@ -103,19 +111,31 @@ func coalesce[T comparable](items ...T) T {
 	return result
 }
 
+func coalesceArray[T any](items ...[]T) []T {
+	for _, item := range items {
+		if len(item) != 0 {
+			return item
+		}
+	}
+
+	var result []T
+	return result
+}
+
 func GetParams() *Params {
 	envParams := parseEnv()
 	cliParams := parseCli()
 
 	return &Params{
-		Address:            coalesce(cliParams.Address, envParams.Address, "0.0.0.0"),
-		Port:               coalesce(cliParams.Port, envParams.Port, 8080),
-		Gzip:               coalesce(cliParams.Gzip, envParams.Gzip, null.BoolFrom(false)),
-		Brotli:             coalesce(cliParams.Brotli, envParams.Brotli, null.BoolFrom(false)),
-		Threshold:          coalesce(cliParams.Threshold, envParams.Threshold, 1024),
-		Directory:          coalesce(cliParams.Directory, envParams.Directory, "."),
-		DirectoryListing:   coalesce(cliParams.DirectoryListing, envParams.DirectoryListing, null.BoolFrom(false)),
-		CacheControlMaxAge: coalesce(cliParams.CacheControlMaxAge, envParams.CacheControlMaxAge, 604800),
-		SpaMode:            coalesce(cliParams.SpaMode, envParams.SpaMode, null.BoolFrom(true)),
+		Address:                 coalesce(cliParams.Address, envParams.Address, "0.0.0.0"),
+		Port:                    coalesce(cliParams.Port, envParams.Port, 8080),
+		Gzip:                    coalesce(cliParams.Gzip, envParams.Gzip, null.BoolFrom(false)),
+		Brotli:                  coalesce(cliParams.Brotli, envParams.Brotli, null.BoolFrom(false)),
+		Threshold:               coalesce(cliParams.Threshold, envParams.Threshold, 1024),
+		Directory:               coalesce(cliParams.Directory, envParams.Directory, "."),
+		DirectoryListing:        coalesce(cliParams.DirectoryListing, envParams.DirectoryListing, null.BoolFrom(false)),
+		CacheControlMaxAge:      coalesce(cliParams.CacheControlMaxAge, envParams.CacheControlMaxAge, 604800),
+		SpaMode:                 coalesce(cliParams.SpaMode, envParams.SpaMode, null.BoolFrom(true)),
+		IgnoreCacheControlPaths: coalesceArray(cliParams.IgnoreCacheControlPaths, envParams.IgnoreCacheControlPaths),
 	}
 }
