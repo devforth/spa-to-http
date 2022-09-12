@@ -110,12 +110,11 @@ How to run container on a custom port:
 ```diff 
  trfk-vue:
     build: "spa"
-++  command: --brotli --port 8082 --ignore-cache-control-paths "/sw.js"
+++  command: --ignore-cache-control-paths "/sw.js"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.trfk-vue.rule=Host(`trfk-vue.localhost`)"
---    - "traefik.http.services.trfk-vue.loadbalancer.server.port=8080"
-++    - "traefik.http.services.trfk-vue.loadbalancer.server.port=8082"
+      - "traefik.http.services.trfk-vue.loadbalancer.server.port=8080"
 ```
 
 
