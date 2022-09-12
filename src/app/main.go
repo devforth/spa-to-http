@@ -102,7 +102,7 @@ func (app *App) HandleFunc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if slices.Contains(app.params.IgnoreCacheControlPaths, r.URL.Path) || path.Ext(requestedPath) == ".html" {
-		w.Header().Set("Cache-Control", "no-cache")
+		w.Header().Set("Cache-Control", "no-store")
 	} else {
 		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d", app.params.CacheControlMaxAge))
 	}
