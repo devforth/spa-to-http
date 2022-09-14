@@ -104,7 +104,6 @@ How to run container on a custom port:
 
 Ignore caching for some specific resources, e.g. prevent Service Worker caching on CDNs like Cloudflare:
 
-How to run container on a custom port:
 
 
 ```diff 
@@ -117,6 +116,7 @@ How to run container on a custom port:
       - "traefik.http.services.trfk-vue.loadbalancer.server.port=8080"
 ```
 
+This is not needed for most of your assets because their filenames should contain file hash (added by default by modern bundlers). So cache naturally invalidated by referencing hashed assets from uncachable html. However some special resources like service worker must be served on fixed URL without file hash in filename
 
 
 
