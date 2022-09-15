@@ -160,6 +160,12 @@ func (app *App) GetOrCreateResponseItem(requestedPath string, compression Compre
 				app.cache.Add(requestedPath, newPath)
 			}
 			return app.GetOrCreateResponseItem(newPath, compression, actualContentType)
+		} else if !app.params.SpaMode && compression == None {
+			newPath := path.Join(requestedPath, "index.html")
+			if app.cache != nil {
+				app.cache.Add(requestedPath, newPath)
+			}
+			return app.GetOrCreateResponseItem(newPath, compression, actualContentType)
 		}
 
 		return nil, http.StatusNotFound
