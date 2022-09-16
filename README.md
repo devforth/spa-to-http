@@ -5,14 +5,31 @@ Lightweight zero-configuration SPA HTTP server. Serves SPA bundle on HTTP port w
 # Benefits
 
 * Zero-configuration, add it to your pipeline without managing additional configs
-* Written in Go, which makes it fast (no overhead on runtime) and tiny (small binary size)
 * Supports Brotly compression on original files, you don't need to archivate files by yourself, it does it for you
+* Written in Go, which makes it fast (no overhead on runtime) and tiny (small binary size)
 * Open-Source commertial friendly MIT license
 * Plays well with all popular SPA frameworks and libraries: Vue, React, Angular and bundlers: Webpack/Vite.
 * Optimal statics caching out of the box: no-cache on index.html file to auto-update caches and infinite max-age for all other resources which have hash-URLs in all SPA frameworks.
 * Created and maintained by Devforth 💪🏼
 
+# Spa-to-http vs Nginx
 
+| Spa-to-http | Nginx | Nginx |
+|---|---|---|
+| Zero-configuration | ✅No config files, SPA serving works out of the box with most optimal settings | ❌Need to create a dedicated config file |
+| Ability to config settings like host, port, compression using Environment variables or CLI | ✅Yes | ❌No, only text config file |
+| Docker image size | ✅13.2 MiB (v1.0.3) | ❌142 MiB (v1.23.1) |
+| Brotli compression out-of-the-box | ✅Yes, just set env BROTLI=true | ❌You need a dedicated module like ngx_brotli |
+
+Performence accroding to [Spa-to-http vs Nginx benchmark (End of the post)](https://devforth.io/blog/deploy-react-vue-angular-in-docker-simply-and-efficiently-using-spa-to-http-and-traefik/)
+
+|  | Spa-to-http | Nginx |
+|---|---|---|
+| Average time from container start to HTTP port availability (100 startups) | ✅1.358 (10.3% faster) | ❌1.514 (10.3% slower) |
+| Requests-per-second on 0.5 KiB HTML file at localhost * | ✅80497 (1.6% faster) | ❌79214 (1.6% slower) |
+| Transfer speed on 0.5 KiB HTML file * | ❌74.16 MiB/sec (1.7% slower) | ✅75.09 MiB/sec (1.7% faster) |
+| Requests-per-second on 5 KiB JS file at localhost * | ✅66126 (5% faster) | ❌62831 (5% slower) |
+| Transfer speed on 5 KiB HTML file * | ✅301.32 MiB/sec (4.3% faster) | ❌288.4 (4.3% slower) |
 
 # Hello world & ussage
 
