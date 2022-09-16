@@ -4,11 +4,12 @@ Lightweight zero-configuration SPA HTTP server. Serves SPA bundle on HTTP port w
 
 # Benefits
 
-* Zero-configuration, add it to your pipeline without managing additional configs
+* Zero-configuration in Docker without managing additional configs
+* 10x times smaller then Nginx, faster startup time, a little bit better performance
+* Plays well with all popular SPA frameworks and libraries: Vue, React, Angular and bundlers: Webpack/Vite
 * Supports Brotly compression on original files, you don't need to archivate files by yourself, it does it for you
 * Written in Go, which makes it fast (no overhead on runtime) and tiny (small binary size)
 * Open-Source commertial friendly MIT license
-* Plays well with all popular SPA frameworks and libraries: Vue, React, Angular and bundlers: Webpack/Vite.
 * Optimal statics caching out of the box: no-cache on index.html file to auto-update caches and infinite max-age for all other resources which have hash-URLs in all SPA frameworks.
 * Created and maintained by Devforth 💪🏼
 
