@@ -14,7 +14,7 @@ Lightweight zero-configuration SPA HTTP server. Serves SPA bundle on HTTP port w
 
 # Spa-to-http vs Nginx
 
-| Spa-to-http | Nginx | Nginx |
+| | Spa-to-http | Nginx |
 |---|---|---|
 | Zero-configuration | ✅No config files, SPA serving works out of the box with most optimal settings | ❌Need to create a dedicated config file |
 | Ability to config settings like host, port, compression using Environment variables or CLI | ✅Yes | ❌No, only text config file |
