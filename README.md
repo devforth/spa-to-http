@@ -48,10 +48,10 @@ FROM devforth/spa-to-http:latest
 COPY --from=builder /code/dist/ . 
 ```
 
-So firt we have build our frontend and included it into container based on SPA-to-HTTP. This way gives us great benefits:
+So we built our frontend and included it into container based on Spa-to-http. This way gives us great benefits:
 
 * We build frontend in docker build time
-* Bund has only small resulting dist folder, there are no source code and node_modules so countainer is small
+* Bundle has only small resulting dist folder, there are no source code and node_modules so countainer is small
 * When you start this container it serves SPA on HTTP port automatically with best settings. Because devforth/spa-to-http already has right CMD inside which runs SPA-to-HTTP webserver with right caching
 
 
