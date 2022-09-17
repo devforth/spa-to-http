@@ -11,6 +11,7 @@ Lightweight zero-configuration SPA HTTP server. Serves SPA bundle on HTTP port w
 * Written in Go, which makes it fast (no overhead on runtime) and tiny (small binary size)
 * Open-Source commercial friendly MIT license
 * Optimal statics caching out of the box: no-cache on index.html file to auto-update caches and infinite max-age for all other resources which have hash-URLs in all SPA frameworks.
+* Plays well with CDNs caching (e.g. Clouflare/AWS CloudFront), support for ignoring cache of fixed URLs like service worker
 * Created and maintained by Devforth 💪🏼
 
 # Spa-to-http vs Nginx
