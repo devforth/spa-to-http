@@ -27,11 +27,11 @@ Performence accroding to [Spa-to-http vs Nginx benchmark (End of the post)](http
 
 |  | Spa-to-http | Nginx |
 |---|---|---|
-| Average time from container start to HTTP port availability (100 startups) | ✅1.358 s (10.3% faster) | ❌1.514s |
+| Average time from container start to HTTP port availability (100 startups) | ✅1.358 s (11.5% faster) | ❌1.514s |
 | Requests-per-second on 0.5 KiB HTML file at localhost * | ✅80497 (1.6% faster) | ❌79214 |
-| Transfer speed on 0.5 KiB HTML file * | ❌74.16 MiB/sec | ✅75.09 MiB/sec (1.7% faster) |
-| Requests-per-second on 5 KiB JS file at localhost * | ✅66126 (5% faster) | ❌62831 |
-| Transfer speed on 5 KiB HTML file * | ✅301.32 MiB/sec (4.3% faster) | ❌288.4 |
+| Transfer speed on 0.5 KiB HTML file * | ❌74.16 MiB/sec | ✅75.09 MiB/sec (1.3% faster) |
+| Requests-per-second on 5 KiB JS file at localhost * | ✅66126 (5.2% faster) | ❌62831 |
+| Transfer speed on 5 KiB HTML file * | ✅301.32 MiB/sec (4.5% faster) | ❌288.4 |
 
 # Hello world & ussage
 
