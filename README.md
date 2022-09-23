@@ -54,7 +54,7 @@ So we built our frontend and included it into container based on Spa-to-http. Th
 
 * We build frontend in docker build time
 * Bundle has only small resulting dist folder, there are no source code and node_modules so countainer is small
-* When you start this container it serves SPA on HTTP port automatically with best settings. Because devforth/spa-to-http already has right CMD inside which runs SPA-to-HTTP webserver with right caching
+* When you start this container it serves SPA on HTTP port automatically with best settings. Spa-to-http already has right CMD inside which runs SPA-to-HTTP webserver with right caching
 
 
 # Example serving SPA with Traefik and Docker-Compose
