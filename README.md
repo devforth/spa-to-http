@@ -5,13 +5,13 @@ Lightweight zero-configuration SPA HTTP server. Serves SPA bundle on HTTP port w
 # Benefits
 
 * Zero-configuration in Docker without managing additional configs
-* 10x times smaller then Nginx, faster startup time, a little bit better performance
-* Plays well with all popular SPA frameworks and libraries: Vue, React, Angular and bundlers: Webpack/Vite
+* 10x times smaller then Nginx, faster startup time, a bit better or same performance
+* Plays well with all popular SPA frameworks and libraries: Vue, React, Angular, Svelte and bundlers: Webpack/Vite
 * Supports Brotly compression on original files, you don't need to archivate files by yourself, it does it for you
 * Written in Go, which makes it fast (no overhead on runtime) and tiny (small binary size)
 * Open-Source commercial friendly MIT license
-* Optimal statics caching out of the box: no-cache on index.html file to auto-update caches and infinite max-age for all other resources which have hash-URLs in all SPA frameworks.
-* Plays well with CDNs caching (e.g. Clouflare/AWS CloudFront), support for ignoring cache of fixed URLs like service worker
+* Optimal statics caching out of the box: no-cache on index.html file to auto-update caches and infinite max-age for all other resources which have hash-URLs in most default SPA bundlers.
+* Plays well with CDNs caching (e.g. Clouflare), support for ignoring cache of fixed URLs like service worker
 * Created and maintained by Devforth 💪🏼
 
 # Spa-to-http vs Nginx
@@ -52,8 +52,8 @@ COPY --from=builder /code/dist/ .
 
 So we built our frontend and included it into container based on Spa-to-http. This way gives us great benefits:
 
-* We build frontend in docker build time
-* Bundle has only small resulting dist folder, there are no source code and node_modules so countainer is small
+* We build frontend in docker build time and improve build time for most changes (npm ci is not getting rebuild if there is no new packages)
+* Bundle has only small resulting dist folder, there is no source code and node_modules so countainer is small
 * When you start this container it serves SPA on HTTP port automatically with best settings. Spa-to-http already has right CMD inside which runs SPA-to-HTTP webserver with right caching
 
 
