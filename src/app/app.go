@@ -105,6 +105,8 @@ func (app *App) CompressFiles() {
 }
 
 func (app *App) GetOrCreateResponseItem(requestedPath string, compression Compression, actualContentType *string) (*ResponseItem, int) {
+	rootIndexPath := path.Join(app.params.Directory, "index.html")
+
 	switch compression {
 	case Gzip:
 		requestedPath = requestedPath + ".gz"
@@ -130,7 +132,7 @@ func (app *App) GetOrCreateResponseItem(requestedPath string, compression Compre
 
 	file, err := dir.Open(fileName)
 	if err != nil {
-		if app.params.SpaMode && compression == None {
+		if app.params.SpaMode && compression == None && requestedPath != rootIndexPath {
 			newPath := path.Join(app.params.Directory, "index.html")
 			if app.cache != nil {
 				app.cache.Add(requestedPath, newPath)
@@ -143,7 +145,7 @@ func (app *App) GetOrCreateResponseItem(requestedPath string, compression Compre
 
 	stat, err := file.Stat()
 	if err != nil {
-		if app.params.SpaMode && compression == None {
+		if app.params.SpaMode && compression == None && requestedPath != rootIndexPath {
 			newPath := path.Join(app.params.Directory, "index.html")
 			if app.cache != nil {
 				app.cache.Add(requestedPath, newPath)
@@ -153,7 +155,7 @@ func (app *App) GetOrCreateResponseItem(requestedPath string, compression Compre
 		return nil, http.StatusNotFound
 	}
 
-	if stat.IsDir() {
+	if stat.IsDir() && requestedPath != rootIndexPath {
 		if app.params.SpaMode && compression == None {
 			newPath := path.Join(app.params.Directory, "index.html")
 			if app.cache != nil {
