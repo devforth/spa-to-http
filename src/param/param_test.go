@@ -71,6 +71,7 @@ func TestContextToParams(t *testing.T) {
 		t.Errorf("Got %t, expected %t", params.SpaMode, e_spa)
 	}
 
+	//TODO
 	// fmt.Println(params.IgnoreCacheControlPaths)
 	// if params.IgnoreCacheControlPaths[0] != e_ignore_cache_control_paths {
 	// 	t.Errorf("Got %s, expected %s", params.IgnoreCacheControlPaths, e_ignore_cache_control_paths)
