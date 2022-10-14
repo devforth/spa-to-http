@@ -1,0 +1,47 @@
+name: Go
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.19.1
+
+    - name: Get coverage tool
+      run: go get golang.org/x/tools/cmd/cover
+
+    - name: Test
+      run: cd src && go tool cover -func cover.out > covered.txt
+      
+    - name: Get coverage
+      run: |
+        cd src
+        for word in $(cat covered.txt); do total_percent=$word; done
+        echo "COVERAGE=$total_percent" >> $GITHUB_ENV
+        REF=${{ github.ref }}
+        IFS='/' read -ra PATHS <<< "$REF"
+        BRANCH_NAME="${PATHS[1]}_${PATHS[2]}"
+        echo $BRANCH_NAME
+        echo "BRANCH=$(echo ${BRANCH_NAME})" >> $GITHUB_ENV
+        
+    - name: Create badge
+      uses: schneegans/dynamic-badges-action@v1.0.0
+      with:
+        auth: ${{ secrets.GIST_SECRET }}
+        gistID: 7a0933f8cba0bddbcc95c8b850e32663
+        filename: spa-to-http_units__${{ env.BRANCH }}.json
+        label: Test Coverage
+        message: ${{ env.COVERAGE }}
+        color: green
+        namedLogo: jest       
