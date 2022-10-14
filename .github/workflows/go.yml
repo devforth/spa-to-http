@@ -43,7 +43,7 @@ jobs:
         
     - name: Create passing badge
       uses: schneegans/dynamic-badges-action@v1.0.0
-      if: $env.COVERAGE!=null
+      if: ${{ $env.COVERAGE!=null }}
       with:
         auth: ${{ secrets.GIST_SECRET }}
         gistID: 7a0933f8cba0bddbcc95c8b850e32663
