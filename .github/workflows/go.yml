@@ -41,12 +41,24 @@ jobs:
         echo $BRANCH_NAME
         echo "BRANCH=$(echo ${BRANCH_NAME})" >> $GITHUB_ENV
         
-    - name: Create badge
+    - name: Create passing badge
+      uses: schneegans/dynamic-badges-action@v1.0.0
+      if: ${{ [env.COVERAGE!=null] }}
+      with:
+        auth: ${{ secrets.GIST_SECRET }}
+        gistID: 7a0933f8cba0bddbcc95c8b850e32663
+        filename: spa-to-http_units_passing__${{ env.BRANCH }}.json
+        label: Tests Passing
+        message: Passing
+        color: green
+        namedLogo: checkmarx
+        
+    - name: Create coverage badge
       uses: schneegans/dynamic-badges-action@v1.0.0
       with:
         auth: ${{ secrets.GIST_SECRET }}
         gistID: 7a0933f8cba0bddbcc95c8b850e32663
-        filename: spa-to-http_units__${{ env.BRANCH }}.json
+        filename: spa-to-http_units_coverage__${{ env.BRANCH }}.json
         label: Test Coverage
         message: ${{ env.COVERAGE }}
         color: green
