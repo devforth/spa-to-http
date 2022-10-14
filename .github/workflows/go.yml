@@ -19,7 +19,7 @@ jobs:
         go-version: 1.19.1
 
     - name: Get coverage tool
-      run: go get golang.org/x/tools/cmd/cover
+      run: cd src && go get golang.org/x/tools/cmd/cover
 
     - name: Test
       run: cd src && go tool cover -func cover.out > covered.txt
