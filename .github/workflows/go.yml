@@ -45,4 +45,4 @@ jobs:
         label: Test Coverage
         message: ${{ env.COVERAGE }}
         color: green
-        namedLogo: google analytics
+        namedLogo: go
