@@ -25,15 +25,14 @@ jobs:
       run: cd src && go tool cover -func cover.out > covered.txt
       
     - name: Get coverage
-      run: |
-        cd src
-        for word in $(cat covered.txt); do total_percent=$word; done
-        echo "COVERAGE=$total_percent" >> $GITHUB_ENV
-        REF=${{ github.ref }}
-        IFS='/' read -ra PATHS <<< "$REF"
-        BRANCH_NAME="${PATHS[1]}_${PATHS[2]}"
-        echo $BRANCH_NAME
-        echo "BRANCH=$(echo ${BRANCH_NAME})" >> $GITHUB_ENV
+      run: cd src
+          for word in $(cat covered.txt); do total_percent=$word; done
+          echo "COVERAGE=$total_percent" >> $GITHUB_ENV
+          REF=${{ github.ref }}
+          IFS='/' read -ra PATHS <<< "$REF"
+          BRANCH_NAME="${PATHS[1]}_${PATHS[2]}"
+          echo $BRANCH_NAME
+          echo "BRANCH=$(echo ${BRANCH_NAME})" >> $GITHUB_ENV
         
     - name: Create badge
       uses: schneegans/dynamic-badges-action@v1.0.0
