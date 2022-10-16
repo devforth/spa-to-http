@@ -49,7 +49,7 @@ jobs:
         gistID: 7a0933f8cba0bddbcc95c8b850e32663
         filename: spa-to-http_units_passing__${{ env.BRANCH }}.json
         label: Tests
-        message: Passes
+        message: Passed
         color: green
         namedLogo: checkmarx
         
