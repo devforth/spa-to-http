@@ -7,6 +7,7 @@ ADD src/ .
 RUN go build -o dist/ -ldflags "-s -w"
 
 FROM alpine:3.16
+WORKDIR /code/
 
 COPY docker-entrypoint.sh /bin/
 ENTRYPOINT ["/bin/docker-entrypoint.sh"]
