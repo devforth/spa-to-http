@@ -1,5 +1,2 @@
-docker build . -t devforth/spa-to-http:latest
-docker push devforth/spa-to-http:latest
-
-docker build . -t devforth/spa-to-http:1.0.3
-docker push devforth/spa-to-http:1.0.3
+docker buildx create --use
+docker buildx build --platform=linux/amd64,linux/arm64 --tag "devforth/spa-to-http:latest" --tag "devforth/spa-to-http:1.0.3" --push .
