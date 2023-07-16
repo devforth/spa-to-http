@@ -44,7 +44,7 @@ func TestRequestGetRemoteAddress(t *testing.T) {
 		req.RemoteAddr = tt.remoteAddr
 
 		actual := requestGetRemoteAddress(req)
-		if actual != tt.expected {
+		if actual.String() != tt.expected {
 			t.Errorf("requestGetRemoteAddress(%s, %s, %s): expected %s, got %s", tt.headerRealIP, tt.headerForwardedFor, tt.remoteAddr, tt.expected, actual)
 		}
 	}
