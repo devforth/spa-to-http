@@ -1,6 +1,7 @@
 package util
 
 import (
+	"net"
 	"net/http"
 	"strings"
 )
@@ -23,21 +24,25 @@ func ipAddrFromRemoteAddr(s string) string {
 
 // requestGetRemoteAddress returns ip address of the client making the request,
 // taking into account http proxies
-func requestGetRemoteAddress(r *http.Request) string {
+func requestGetRemoteAddress(r *http.Request) net.IP {
 	hdr := r.Header
+
 	hdrRealIP := hdr.Get("X-Real-Ip")
 	hdrForwardedFor := hdr.Get("X-Forwarded-For")
 	if hdrRealIP == "" && hdrForwardedFor == "" {
-		return ipAddrFromRemoteAddr(r.RemoteAddr)
+		return net.ParseIP(ipAddrFromRemoteAddr(r.RemoteAddr))
 	}
+
 	if hdrForwardedFor != "" {
 		// X-Forwarded-For is potentially a list of addresses separated with ","
 		parts := strings.Split(hdrForwardedFor, ",")
+		fwdIPs := make([]net.IP, len(parts))
 		for i, p := range parts {
-			parts[i] = strings.TrimSpace(p)
+			fwdIPs[i] = net.ParseIP(ipAddrFromRemoteAddr(strings.TrimSpace(p)))
 		}
-		// TODO: should return first non-local address
-		return parts[0]
+		// return first address
+		return fwdIPs[0]
 	}
-	return hdrRealIP
+
+	return net.ParseIP(hdrRealIP)
 }

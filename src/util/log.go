@@ -1,6 +1,7 @@
 package util
 
 import (
+	"net"
 	"net/http"
 	"os"
 	"time"
@@ -27,7 +28,7 @@ type HTTPReqInfo struct {
 	// how long did it take to
 	duration time.Duration
 	// client IP Address
-	ipAddress string
+	ipAddress net.IP
 	// client UserAgent
 	userAgent string
 	// referer header
@@ -41,7 +42,7 @@ func logHTTPReqInfo(ri *HTTPReqInfo) {
 		Int("code", ri.code).
 		Int64("size", ri.size).
 		Dur("duration", ri.duration).
-		Str("ipAddress", ri.ipAddress).
+		IPAddr("ipAddress", ri.ipAddress).
 		Str("userAgent", ri.userAgent).
 		Str("referer", ri.referer).
 		Send()
