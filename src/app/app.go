@@ -7,6 +7,7 @@ import (
 	"github.com/andybalholm/brotli"
 	lru "github.com/hashicorp/golang-lru"
 	"go-http-server/param"
+	"go-http-server/util"
 	"golang.org/x/exp/slices"
 	"io"
 	"mime"
@@ -256,9 +257,16 @@ func (app *App) HandlerFuncNew(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *App) Listen() {
+	var handlerFunc http.Handler = http.HandlerFunc(app.HandlerFuncNew)
+	if app.params.Logger {
+		handlerFunc = util.LogRequestHandler(handlerFunc, &util.LogRequestHandlerOptions{
+			Pretty: app.params.LogPretty,
+		})
+	}
+
 	app.server = &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", app.params.Address, app.params.Port),
-		Handler: http.HandlerFunc(app.HandlerFuncNew),
+		Handler: handlerFunc,
 	}
 
 	fmt.Printf("Server listening on http://%s\n", app.server.Addr)

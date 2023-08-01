@@ -69,6 +69,16 @@ var Flags = []cli.Flag{
 		Name:    "cache-buffer",
 		Value:   50 * 1024,
 	},
+	&cli.BoolFlag{
+		EnvVars: []string{"LOGGER"},
+		Name:    "logger",
+		Value:   false,
+	},
+	&cli.BoolFlag{
+		EnvVars: []string{"LOG_PRETTY"},
+		Name:    "log-pretty",
+		Value:   false,
+	},
 }
 
 type Params struct {
@@ -83,8 +93,9 @@ type Params struct {
 	IgnoreCacheControlPaths []string
 	CacheEnabled            bool
 	CacheBuffer             int
+	Logger                  bool
+	LogPretty               bool
 	//DirectoryListing        bool
-
 }
 
 func ContextToParams(c *cli.Context) *Params {
@@ -100,6 +111,8 @@ func ContextToParams(c *cli.Context) *Params {
 		IgnoreCacheControlPaths: c.StringSlice("ignore-cache-control-paths"),
 		CacheEnabled:            c.Bool("cache"),
 		CacheBuffer:             c.Int("cache-buffer"),
+		Logger:                  c.Bool("logger"),
+		LogPretty:               c.Bool("log-pretty"),
 		//DirectoryListing:        c.Bool("directory-listing"),
 	}
 }
