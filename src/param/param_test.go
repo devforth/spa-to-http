@@ -29,7 +29,7 @@ func TestContextToParams(t *testing.T) {
 	f.Bool("brotli", e_brotli, "")
 	f.Int64("threshold", e_threshold, "")
 	f.String("directory", e_directory, "")
-	f.Int64("cache-control-max-age", e_cache_control_max_age, "")
+	f.Int64("cache-max-age", e_cache_control_max_age, "")
 	f.Bool("spa", e_spa, "")
 	f.String("ignore-cache-control-paths", e_ignore_cache_control_paths, "")
 	f.Bool("cache", e_cache, "")
