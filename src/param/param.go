@@ -106,7 +106,7 @@ func ContextToParams(c *cli.Context) *Params {
 		Brotli:                  c.Bool("brotli"),
 		Threshold:               c.Int64("threshold"),
 		Directory:               c.String("directory"),
-		CacheControlMaxAge:      c.Int64("cache-control-max-age"),
+		CacheControlMaxAge:      c.Int64("cache-max-age"),
 		SpaMode:                 c.Bool("spa"),
 		IgnoreCacheControlPaths: c.StringSlice("ignore-cache-control-paths"),
 		CacheEnabled:            c.Bool("cache"),
