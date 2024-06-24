@@ -308,3 +308,40 @@ func TestListen(t *testing.T) {
 
 	a.Listen()
 }
+
+func TestGetFilePath(t *testing.T) {
+	params := param.Params{
+		Address:                 "0.0.0.0",
+		Port:                    8080,
+		Gzip:                    false,
+		Brotli:                  true,
+		Threshold:               1024,
+		Directory:               "../../test/frontend/dist",
+		CacheControlMaxAge:      99999999999,
+		SpaMode:                 true,
+		IgnoreCacheControlPaths: []string{"../../test/frontend/dist/example.html"},
+		CacheEnabled:            true,
+		CacheBuffer:             50 * 1024,
+	}
+	app := app.NewApp(&params)
+
+	_, valid := app.GetFilePath("../test/index.html")
+	if valid {
+		t.Errorf("Expected false, got %t", valid)
+	}
+
+	_, valid = app.GetFilePath("../../test/index.html")
+	if valid {
+		t.Errorf("Expected false, got %t", valid)
+	}
+
+	_, valid = app.GetFilePath("test/../index.html")
+	if !valid {
+		t.Errorf("Expected false, got %t", valid)
+	}
+
+	_, valid = app.GetFilePath("test/../test/../index.html")
+	if !valid {
+		t.Errorf("Expected false, got %t", valid)
+	}
+}

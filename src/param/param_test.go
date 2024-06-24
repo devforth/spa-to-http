@@ -37,7 +37,11 @@ func TestContextToParams(t *testing.T) {
 
 	ctx := cli.NewContext(nil, f, nil)
 	ctx.Context = context.WithValue(context.Background(), "key", "val")
-	params := param.ContextToParams(ctx)
+	params, err := param.ContextToParams(ctx)
+	if err != nil {
+		t.Errorf("Error: %s", err)
+		return
+	}
 
 	if params.Address != e_adress {
 		t.Errorf("Got %s, expected %s", params.Address, e_adress)

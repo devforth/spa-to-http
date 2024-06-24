@@ -13,7 +13,10 @@ func main() {
 		Name:  "spa-to-http",
 		Flags: param.Flags,
 		Action: func(c *cli.Context) error {
-			params := param.ContextToParams(c)
+			params, err := param.ContextToParams(c)
+			if err != nil {
+				return err
+			}
 
 			newApp := app.NewApp(params)
 			go newApp.CompressFiles()

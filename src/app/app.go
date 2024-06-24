@@ -203,8 +203,29 @@ func (app *App) GetOrCreateResponseItem(requestedPath string, compression Compre
 	return &responseItem, 0
 }
 
+func (app *App) GetFilePath(urlPath string) (string, bool) {
+	requestedPath := path.Join(app.params.Directory, urlPath)
+
+	requestedPath, err := filepath.EvalSymlinks(requestedPath)
+	if err != nil {
+		return "", false
+	}
+
+	if !strings.HasPrefix(requestedPath, app.params.Directory) {
+		return "", false
+	}
+
+	return requestedPath, true
+}
+
 func (app *App) HandlerFuncNew(w http.ResponseWriter, r *http.Request) {
-	requestedPath := path.Join(app.params.Directory, r.URL.Path)
+	requestedPath, valid := app.GetFilePath(r.URL.Path)
+
+	if !valid {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
 	responseItem, errorCode := app.GetOrCreateResponseItem(requestedPath, None, nil)
 	if errorCode != 0 {
 		w.WriteHeader(errorCode)

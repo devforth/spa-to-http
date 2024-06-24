@@ -2,6 +2,7 @@ package param
 
 import (
 	"github.com/urfave/cli/v2"
+	"path/filepath"
 )
 
 var Flags = []cli.Flag{
@@ -98,14 +99,19 @@ type Params struct {
 	//DirectoryListing        bool
 }
 
-func ContextToParams(c *cli.Context) *Params {
+func ContextToParams(c *cli.Context) (*Params, error) {
+	directory, err := filepath.Abs(c.String("directory"))
+	if err != nil {
+		return nil, err
+	}
+
 	return &Params{
 		Address:                 c.String("address"),
 		Port:                    c.Int("port"),
 		Gzip:                    c.Bool("gzip"),
 		Brotli:                  c.Bool("brotli"),
 		Threshold:               c.Int64("threshold"),
-		Directory:               c.String("directory"),
+		Directory:               directory,
 		CacheControlMaxAge:      c.Int64("cache-max-age"),
 		SpaMode:                 c.Bool("spa"),
 		IgnoreCacheControlPaths: c.StringSlice("ignore-cache-control-paths"),
@@ -114,5 +120,5 @@ func ContextToParams(c *cli.Context) *Params {
 		Logger:                  c.Bool("logger"),
 		LogPretty:               c.Bool("log-pretty"),
 		//DirectoryListing:        c.Bool("directory-listing"),
-	}
+	}, nil
 }
