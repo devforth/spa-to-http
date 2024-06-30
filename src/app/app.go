@@ -206,9 +206,8 @@ func (app *App) GetOrCreateResponseItem(requestedPath string, compression Compre
 func (app *App) GetFilePath(urlPath string) (string, bool) {
 	requestedPath := path.Join(app.params.Directory, urlPath)
 
-	requestedPath, err := filepath.EvalSymlinks(requestedPath)
-	if err != nil {
-		return "", false
+	if _, err := os.Stat(requestedPath); !os.IsNotExist(err) {
+		requestedPath, err = filepath.EvalSymlinks(requestedPath)
 	}
 
 	if !strings.HasPrefix(requestedPath, app.params.Directory) {
