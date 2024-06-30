@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"go-http-server/param"
+	"path/filepath"
 	"testing"
 
 	"github.com/urfave/cli/v2"
@@ -63,7 +64,8 @@ func TestContextToParams(t *testing.T) {
 		t.Errorf("Got %d, expected %d", params.Threshold, e_threshold)
 	}
 
-	if params.Directory != e_directory {
+	abs_directory, _ := filepath.Abs(e_directory)
+	if params.Directory != abs_directory {
 		t.Errorf("Got %s, expected %s", params.Directory, e_directory)
 	}
 
