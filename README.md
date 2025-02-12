@@ -42,7 +42,7 @@ Performence accroding to [Spa-to-http vs Nginx benchmark (End of the post)](http
 Create `Dockerfile` in yoru SPA directory (near `package.json`):
 
 ```
-FROM node:16-alpine as builder
+FROM node:20-alpine as builder
 WORKDIR /code/
 ADD package-lock.json .
 ADD package.json .
@@ -52,6 +52,12 @@ RUN npm run build
 
 FROM devforth/spa-to-http:latest
 COPY --from=builder /code/dist/ . 
+```
+
+Test it locally:
+
+```sh
+docker build -q . | xargs docker run --rm -p 8080:8080
 ```
 
 So we built our frontend and included it into container based on Spa-to-http. This way gives us great benefits:
