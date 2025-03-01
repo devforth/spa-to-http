@@ -1,12 +1,12 @@
-# spa-to-http ![Coverage Badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/LbP22/7a0933f8cba0bddbcc95c8b850e32663/raw/spa-to-http_units_passing__heads_main.json) ![Coverage Badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/LbP22/7a0933f8cba0bddbcc95c8b850e32663/raw/spa-to-http_units_coverage__heads_main.json) 
-
+![Coverage Badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/LbP22/7a0933f8cba0bddbcc95c8b850e32663/raw/spa-to-http_units_passing__heads_main.json) ![Coverage Badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/LbP22/7a0933f8cba0bddbcc95c8b850e32663/raw/spa-to-http_units_coverage__heads_main.json) 
 
 <a href="https://devforth.io"><img src="https://raw.githubusercontent.com/devforth/OnLogs/e97944fffc24fec0ce2347b205c9bda3be8de5c5/.assets/df_powered_by.svg" style="height:36px"/></a>
 
+# World's fastest lightweight zero-configuration SPA HTTP server. 
 
-Lightweight zero-configuration SPA HTTP server. Serves SPA bundle on HTTP port which makes it play well with traefik
+Simply serves SPA bundle on HTTP port which makes it play well with Traefik / Cloudflare another reverse proxy.
 
-# Benefits
+## Benefits
 
 * Zero-configuration in Docker without managing additional configs
 * 10x times smaller then Nginx, faster startup time, a bit better or same performance
@@ -18,7 +18,7 @@ Lightweight zero-configuration SPA HTTP server. Serves SPA bundle on HTTP port w
 * Plays well with CDNs caching (e.g. Clouflare), support for ignoring cache of fixed URLs like service worker
 * Created and maintained by Devforth 💪🏼
 
-# Spa-to-http vs Nginx
+## Spa-to-http vs Nginx
 
 | | Spa-to-http | Nginx |
 |---|---|---|
@@ -37,7 +37,7 @@ Performence accroding to [Spa-to-http vs Nginx benchmark (End of the post)](http
 | Requests-per-second on 5 KiB JS file at localhost * | ✅66126 (5.2% faster) | ❌62831 |
 | Transfer speed on 5 KiB HTML file * | ✅301.32 MiB/sec (4.5% faster) | ❌288.4 |
 
-# Hello world & ussage
+## Hello world & ussage
 
 Create `Dockerfile` in yoru SPA directory (near `package.json`):
 
