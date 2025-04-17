@@ -80,6 +80,11 @@ var Flags = []cli.Flag{
 		Name:    "log-pretty",
 		Value:   false,
 	},
+	&cli.StringSliceFlag{
+		EnvVars: []string{"NO_COMPRESS"},
+		Name:    "no-compress",
+		Value:   nil,
+	},
 }
 
 type Params struct {
@@ -96,6 +101,7 @@ type Params struct {
 	CacheBuffer             int
 	Logger                  bool
 	LogPretty               bool
+	NoCompress              []string
 	//DirectoryListing        bool
 }
 
@@ -119,6 +125,7 @@ func ContextToParams(c *cli.Context) (*Params, error) {
 		CacheBuffer:             c.Int("cache-buffer"),
 		Logger:                  c.Bool("logger"),
 		LogPretty:               c.Bool("log-pretty"),
+		NoCompress:              c.StringSlice("no-compress"),
 		//DirectoryListing:        c.Bool("directory-listing"),
 	}, nil
 }

@@ -55,6 +55,16 @@ func NewApp(params *param.Params) App {
 	return App{params: params, server: nil, cache: cache}
 }
 
+func (app *App) shouldSkipCompression(filePath string) bool {
+	ext := strings.ToLower(filepath.Ext(filePath))
+	for _, blocked := range app.params.NoCompress {
+		if strings.ToLower(blocked) == ext {
+			return true
+		}
+	}
+	return false
+}
+
 func (app *App) CompressFiles() {
 	if !app.params.Gzip && !app.params.Brotli {
 		return
@@ -70,6 +80,10 @@ func (app *App) CompressFiles() {
 
 		ext := path.Ext(filePath)
 		if ext == ".br" || ext == ".gz" {
+			return nil
+		}
+
+		if app.shouldSkipCompression(filePath) {
 			return nil
 		}
 
@@ -228,6 +242,14 @@ func (app *App) HandlerFuncNew(w http.ResponseWriter, r *http.Request) {
 	responseItem, errorCode := app.GetOrCreateResponseItem(requestedPath, None, nil)
 	if errorCode != 0 {
 		w.WriteHeader(errorCode)
+		return
+	}
+
+	if r.Header.Get("Range") != "" || app.shouldSkipCompression(requestedPath) {
+		if responseItem.ContentType != "" {
+			w.Header().Set("Content-Type", responseItem.ContentType)
+		}
+		http.ServeContent(w, r, responseItem.Name, responseItem.ModTime, bytes.NewReader(responseItem.Content))
 		return
 	}
 
