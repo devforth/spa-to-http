@@ -55,7 +55,7 @@ func NewApp(params *param.Params) App {
 	return App{params: params, server: nil, cache: cache}
 }
 
-func (app *App) shouldSkipCompression(filePath string) bool {
+func (app *App) ShouldSkipCompression(filePath string) bool {
 	ext := strings.ToLower(filepath.Ext(filePath))
 	for _, blocked := range app.params.NoCompress {
 		if strings.ToLower(blocked) == ext {
@@ -83,7 +83,7 @@ func (app *App) CompressFiles() {
 			return nil
 		}
 
-		if app.shouldSkipCompression(filePath) {
+		if app.ShouldSkipCompression(filePath) {
 			return nil
 		}
 
@@ -245,7 +245,7 @@ func (app *App) HandlerFuncNew(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Header.Get("Range") != "" || app.shouldSkipCompression(requestedPath) {
+	if r.Header.Get("Range") != "" || app.ShouldSkipCompression(requestedPath) {
 		if responseItem.ContentType != "" {
 			w.Header().Set("Content-Type", responseItem.ContentType)
 		}
