@@ -373,3 +373,34 @@ func TestLogRequestHandlerNilOptions(t *testing.T) {
 		t.Errorf("expected log output, got empty string")
 	}
 }
+
+func TestLogRequestHandlerWithLoggerOverride(t *testing.T) {
+	var buf bytes.Buffer
+	logger := slog.New(slog.NewJSONHandler(&buf, nil))
+
+	dummyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	handler := LogRequestHandler(dummyHandler, &LogRequestHandlerOptions{
+		Logger: logger,
+	})
+
+	req := httptest.NewRequest("GET", "/logger-override", nil)
+	req.RemoteAddr = "127.0.0.1:8080"
+	wr := httptest.NewRecorder()
+	handler.ServeHTTP(wr, req)
+
+	logged := buf.String()
+	if len(logged) == 0 {
+		t.Fatalf("expected log output, got empty string")
+	}
+
+	var logData map[string]interface{}
+	if err := json.Unmarshal([]byte(logged), &logData); err != nil {
+		t.Fatalf("failed to parse log output as JSON: %v", err)
+	}
+	if path, ok := logData["path"]; !ok || path != "/logger-override" {
+		t.Errorf("expected path '/logger-override', got %v", path)
+	}
+}

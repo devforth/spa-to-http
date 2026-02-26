@@ -8,7 +8,21 @@ import (
 	"os"
 )
 
-func main() {
+type AppRunner interface {
+	CompressFiles()
+	Listen()
+}
+
+func defaultNewRunner(params *param.Params) AppRunner {
+	newApp := app.NewApp(params)
+	return &newApp
+}
+
+func run(args []string, newRunner func(*param.Params) AppRunner) error {
+	if newRunner == nil {
+		newRunner = defaultNewRunner
+	}
+
 	cliApp := &cli.App{
 		Name:  "spa-to-http",
 		Flags: param.Flags,
@@ -18,7 +32,7 @@ func main() {
 				return err
 			}
 
-			newApp := app.NewApp(params)
+			newApp := newRunner(params)
 			go newApp.CompressFiles()
 			newApp.Listen()
 
@@ -26,7 +40,11 @@ func main() {
 		},
 	}
 
-	if err := cliApp.Run(os.Args); err != nil {
+	return cliApp.Run(args)
+}
+
+func main() {
+	if err := run(os.Args, nil); err != nil {
 		log.Fatal(err)
 	}
 }

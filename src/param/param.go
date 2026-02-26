@@ -106,7 +106,11 @@ type Params struct {
 }
 
 func ContextToParams(c *cli.Context) (*Params, error) {
-	directory, err := filepath.Abs(c.String("directory"))
+	return ContextToParamsWithAbs(c, filepath.Abs)
+}
+
+func ContextToParamsWithAbs(c *cli.Context, abs func(string) (string, error)) (*Params, error) {
+	directory, err := abs(c.String("directory"))
 	if err != nil {
 		return nil, err
 	}

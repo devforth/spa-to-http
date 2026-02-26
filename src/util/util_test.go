@@ -1,7 +1,11 @@
 package util_test
 
 import (
+	"errors"
 	"go-http-server/util"
+	"io"
+	"io/fs"
+	"net/http"
 	"testing"
 )
 
@@ -56,5 +60,34 @@ func TestGetFileType(t *testing.T) {
 		if actual != tc.expected {
 			t.Error("expected: ", tc.expected, "\ngot: ", actual)
 		}
+	}
+}
+
+type badStatFile struct{}
+
+func (f *badStatFile) Close() error                       { return nil }
+func (f *badStatFile) Read(_ []byte) (int, error)         { return 0, io.EOF }
+func (f *badStatFile) Seek(_ int64, _ int) (int64, error) { return 0, nil }
+func (f *badStatFile) Readdir(_ int) ([]fs.FileInfo, error) {
+	return nil, nil
+}
+func (f *badStatFile) Stat() (fs.FileInfo, error) {
+	return nil, errors.New("stat failed")
+}
+
+func TestGetFileWithInfoAndTypeWithOpenerStatError(t *testing.T) {
+	opener := func(_, _ string) (http.File, error) {
+		return &badStatFile{}, nil
+	}
+
+	file, info, fileType := util.GetFileWithInfoAndTypeWithOpener("irrelevant", opener)
+	if file != nil {
+		t.Errorf("Expected file = nil, got %v", file)
+	}
+	if info != nil {
+		t.Errorf("Expected info = nil, got %v", info)
+	}
+	if fileType != util.FileTypeNotExists {
+		t.Errorf("Expected FileTypeNotExists, got %v", fileType)
 	}
 }

@@ -20,9 +20,10 @@ import (
 )
 
 type App struct {
-	params *param.Params
-	server *http.Server
-	cache  *lru.TwoQueueCache
+	params         *param.Params
+	server         *http.Server
+	cache          *lru.TwoQueueCache
+	listenAndServe func(*http.Server) error
 }
 
 type ResponseItem struct {
@@ -42,6 +43,10 @@ const (
 )
 
 func NewApp(params *param.Params) App {
+	return NewAppWithListenAndServe(params, nil)
+}
+
+func NewAppWithListenAndServe(params *param.Params, listenAndServe func(*http.Server) error) App {
 	var cache *lru.TwoQueueCache = nil
 	var err error
 
@@ -52,7 +57,18 @@ func NewApp(params *param.Params) App {
 		}
 	}
 
-	return App{params: params, server: nil, cache: cache}
+	if listenAndServe == nil {
+		listenAndServe = func(server *http.Server) error {
+			return server.ListenAndServe()
+		}
+	}
+
+	return App{
+		params:         params,
+		server:         nil,
+		cache:          cache,
+		listenAndServe: listenAndServe,
+	}
 }
 
 func (app *App) ShouldSkipCompression(filePath string) bool {
@@ -312,7 +328,7 @@ func (app *App) Listen() {
 	}
 
 	fmt.Printf("Server listening on http://%s\n", app.server.Addr)
-	err := app.server.ListenAndServe()
+	err := app.listenAndServe(app.server)
 	if err != nil {
 		panic(err)
 	}

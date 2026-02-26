@@ -28,9 +28,19 @@ func GetFileType(path string) FileType {
 }
 
 func GetFileWithInfoAndType(path string) (http.File, fs.FileInfo, FileType) {
+	return GetFileWithInfoAndTypeWithOpener(path, nil)
+}
+
+func GetFileWithInfoAndTypeWithOpener(path string, opener func(string, string) (http.File, error)) (http.File, fs.FileInfo, FileType) {
+	if opener == nil {
+		opener = func(dirPath, fileName string) (http.File, error) {
+			fsDir := http.Dir(dirPath)
+			return fsDir.Open(fileName)
+		}
+	}
+
 	dirPath, fileName := filepath.Split(path)
-	fsDir := http.Dir(dirPath)
-	file, err := fsDir.Open(fileName)
+	file, err := opener(dirPath, fileName)
 
 	if err != nil {
 		return nil, nil, FileTypeNotExists
