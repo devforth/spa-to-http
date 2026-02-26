@@ -1,0 +1,70 @@
+[← Getting Started](getting-started.md) · [Back to README](../README.md) · [Deployment →](deployment.md)
+
+# Configuration
+
+spa-to-http supports both environment variables and CLI flags. Environment variables map directly to the CLI options.
+
+## Options
+
+| Environment Variable | Command | Description | Default |
+|---|---|---|---|
+| ADDRESS | `-a` or `--address` | Address to use | `0.0.0.0` |
+| PORT | `-p` or `--port` | Port to listen on | `8080` |
+| GZIP | `--gzip` | Enable gzip compression for files above the threshold | `false` |
+| BROTLI | `--brotli` | Enable Brotli compression for files above the threshold | `false` |
+| THRESHOLD | `--threshold <number>` | Threshold in bytes for gzip and Brotli | `1024` |
+| DIRECTORY | `-d <string>` or `--directory <string>` | Directory to serve | `.` |
+| CACHE_MAX_AGE | `--cache-max-age <number>` | Cache max-age in seconds; use `-1` to disable | `604800` |
+| IGNORE_CACHE_CONTROL_PATHS | `--ignore-cache-control-paths <string>` | Comma-separated paths to force `Cache-Control: no-store` | (empty) |
+| SPA_MODE | `--spa` or `--spa <bool>` | Serve `index.html` on missing paths (SPA routing) | `true` |
+| CACHE | `--cache` | Enable in-memory file read cache (LRU) | `true` |
+| CACHE_BUFFER | `--cache-buffer <number>` | Max size of the LRU cache in bytes | `51200` |
+| LOGGER | `--logger` | Enable request logging | `false` |
+| LOG_PRETTY | `--log-pretty` | Pretty-print logs instead of JSON | `false` |
+
+## Examples
+
+Enable Brotli:
+
+```yaml
+# docker-compose.yml
+services:
+  spa:
+    image: devforth/spa-to-http:latest
+    command: --brotli
+```
+
+Change compression threshold:
+
+```yaml
+services:
+  spa:
+    image: devforth/spa-to-http:latest
+    command: --brotli --threshold 500
+```
+
+Serve on a custom port:
+
+```yaml
+services:
+  spa:
+    image: devforth/spa-to-http:latest
+    command: --port 8082
+    ports:
+      - "8082:8082"
+```
+
+Ignore cache-control for fixed paths (for example, a service worker):
+
+```yaml
+services:
+  spa:
+    image: devforth/spa-to-http:latest
+    command: --ignore-cache-control-paths "/sw.js"
+```
+
+## See Also
+
+- [Getting Started](getting-started.md) — Install, build, and run
+- [Deployment](deployment.md) — Docker and reverse proxy setup
+- [Architecture](architecture.md) — Project structure and request flow
