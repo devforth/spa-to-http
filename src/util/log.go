@@ -1,14 +1,13 @@
 package util
 
 import (
+	"log/slog"
 	"net"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/felixge/httpsnoop"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 type LogRequestHandlerOptions struct {
@@ -35,31 +34,32 @@ type HTTPReqInfo struct {
 	referer string
 }
 
-func logHTTPReqInfo(ri *HTTPReqInfo) {
-	log.Info().
-		Str("method", ri.method).
-		Str("path", ri.path).
-		Int("code", ri.code).
-		Int64("size", ri.size).
-		Dur("duration", ri.duration).
-		IPAddr("ipAddress", ri.ipAddress).
-		Str("userAgent", ri.userAgent).
-		Str("referer", ri.referer).
-		Send()
+func logHTTPReqInfo(l *slog.Logger, ri *HTTPReqInfo) {
+	l.Info("HTTP Request",
+		"method", ri.method,
+		"path", ri.path,
+		slog.Int("code", ri.code),
+		slog.Int64("size", ri.size),
+		slog.Int64("duration", ri.duration.Milliseconds()), // in milliseconds
+		"ipAddress", ri.ipAddress,
+		"userAgent", ri.userAgent,
+		"referer", ri.referer,
+	)
 }
 
 func LogRequestHandler(h http.Handler, opt *LogRequestHandlerOptions) http.Handler {
+	var logger *slog.Logger
 	if opt.Pretty {
-		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+		logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
+	} else {
+		logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	}
-
-	zerolog.DurationFieldUnit = time.Millisecond
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		// runs handler h and captures information about HTTP request
 		mtr := httpsnoop.CaptureMetrics(h, w, r)
 
-		logHTTPReqInfo(&HTTPReqInfo{
+		logHTTPReqInfo(logger, &HTTPReqInfo{
 			method:    r.Method,
 			path:      r.URL.String(),
 			code:      mtr.Code,
