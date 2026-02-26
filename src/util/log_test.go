@@ -3,15 +3,15 @@ package util
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"log/slog"
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/felixge/httpsnoop"
 )
 
 func TestLogHTTPReqInfo(t *testing.T) {
@@ -60,7 +60,7 @@ func TestLogHTTPReqInfo(t *testing.T) {
 		}
 	}
 
-	// Check that duration field exists and is a number (slog duration format in nanoseconds)
+	// Check that duration field exists and is a number (milliseconds)
 	if duration, ok := logData["duration"]; !ok {
 		t.Errorf("Expected log to contain 'duration' field, got: %s", logged)
 	} else if _, ok := duration.(float64); !ok {
@@ -135,37 +135,15 @@ func TestLogRequestHandler(t *testing.T) {
 			// Capture log output to a buffer instead of stdout
 			var buf bytes.Buffer
 
-			// Create the logging handler with a custom logger that writes to our buffer
 			dummyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusOK)
 				w.Write([]byte("test response"))
 			})
 
-			// Create a custom version of LogRequestHandler that uses our buffer for logging
-			var logger *slog.Logger
-			if tt.pretty {
-				logger = slog.New(slog.NewTextHandler(&buf, nil))
-			} else {
-				logger = slog.New(slog.NewJSONHandler(&buf, nil))
-			}
-
-			// Create a modified version of LogRequestHandler that uses our logger
-			fn := func(w http.ResponseWriter, r *http.Request) {
-				// runs handler and captures information about HTTP request
-				mtr := httpsnoop.CaptureMetrics(dummyHandler, w, r)
-
-				logHTTPReqInfo(logger, &HTTPReqInfo{
-					method:    r.Method,
-					path:      r.URL.String(),
-					code:      mtr.Code,
-					size:      mtr.Written,
-					duration:  mtr.Duration,
-					ipAddress: requestGetRemoteAddress(r),
-					userAgent: r.Header.Get("User-Agent"),
-					referer:   r.Header.Get("Referer"),
-				})
-			}
-			handler := http.HandlerFunc(fn)
+			handler := LogRequestHandler(dummyHandler, &LogRequestHandlerOptions{
+				Pretty: tt.pretty,
+				Writer: &buf,
+			})
 
 			// Create test request
 			req := httptest.NewRequest(tt.method, tt.path, nil)
@@ -271,7 +249,6 @@ func TestLogRequestHandlerWithDifferentStatusCodes(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Capture log output
 			var buf bytes.Buffer
-			logger := slog.New(slog.NewJSONHandler(&buf, nil))
 
 			// Create a dummy handler that returns the specified status code
 			dummyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -281,22 +258,9 @@ func TestLogRequestHandlerWithDifferentStatusCodes(t *testing.T) {
 				}
 			})
 
-			// Create a custom handler that uses our logger
-			fn := func(w http.ResponseWriter, r *http.Request) {
-				mtr := httpsnoop.CaptureMetrics(dummyHandler, w, r)
-
-				logHTTPReqInfo(logger, &HTTPReqInfo{
-					method:    r.Method,
-					path:      r.URL.String(),
-					code:      mtr.Code,
-					size:      mtr.Written,
-					duration:  mtr.Duration,
-					ipAddress: requestGetRemoteAddress(r),
-					userAgent: r.Header.Get("User-Agent"),
-					referer:   r.Header.Get("Referer"),
-				})
-			}
-			handler := http.HandlerFunc(fn)
+			handler := LogRequestHandler(dummyHandler, &LogRequestHandlerOptions{
+				Writer: &buf,
+			})
 
 			// Create test request
 			req := httptest.NewRequest("GET", "/test", nil)
@@ -338,29 +302,16 @@ func TestLogRequestHandlerWithDifferentStatusCodes(t *testing.T) {
 func TestLogRequestHandlerPrettyLogging(t *testing.T) {
 	// Test that the pretty option works without errors
 	var buf bytes.Buffer
-	logger := slog.New(slog.NewTextHandler(&buf, nil))
 
 	dummyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))
 	})
 
-	// Create a custom handler with pretty logging
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		mtr := httpsnoop.CaptureMetrics(dummyHandler, w, r)
-
-		logHTTPReqInfo(logger, &HTTPReqInfo{
-			method:    r.Method,
-			path:      r.URL.String(),
-			code:      mtr.Code,
-			size:      mtr.Written,
-			duration:  mtr.Duration,
-			ipAddress: requestGetRemoteAddress(r),
-			userAgent: r.Header.Get("User-Agent"),
-			referer:   r.Header.Get("Referer"),
-		})
-	}
-	handler := http.HandlerFunc(fn)
+	handler := LogRequestHandler(dummyHandler, &LogRequestHandlerOptions{
+		Pretty: true,
+		Writer: &buf,
+	})
 
 	req := httptest.NewRequest("GET", "/", nil)
 	req.RemoteAddr = "127.0.0.1:8080"
@@ -388,5 +339,37 @@ func TestLogRequestHandlerPrettyLogging(t *testing.T) {
 	}
 	if !strings.Contains(logged, "HTTP Request") {
 		t.Errorf("Expected log to contain message 'HTTP Request', got: %s", logged)
+	}
+}
+
+func TestLogRequestHandlerNilOptions(t *testing.T) {
+	// Ensure nil options do not panic and still log to stdout.
+	dummyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	origStdout := os.Stdout
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("failed to create pipe: %v", err)
+	}
+	os.Stdout = w
+	defer func() {
+		os.Stdout = origStdout
+	}()
+
+	handler := LogRequestHandler(dummyHandler, nil)
+	req := httptest.NewRequest("GET", "/nil-options", nil)
+	req.RemoteAddr = "127.0.0.1:8080"
+	wr := httptest.NewRecorder()
+	handler.ServeHTTP(wr, req)
+
+	w.Close()
+	out, err := io.ReadAll(r)
+	if err != nil {
+		t.Fatalf("failed to read stdout: %v", err)
+	}
+	if len(out) == 0 {
+		t.Errorf("expected log output, got empty string")
 	}
 }

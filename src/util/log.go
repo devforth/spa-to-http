@@ -1,6 +1,7 @@
 package util
 
 import (
+	"io"
 	"log/slog"
 	"net"
 	"net/http"
@@ -12,6 +13,8 @@ import (
 
 type LogRequestHandlerOptions struct {
 	Pretty bool
+	Writer io.Writer
+	Logger *slog.Logger
 }
 
 // LogReqInfo describes info about HTTP request
@@ -48,11 +51,24 @@ func logHTTPReqInfo(l *slog.Logger, ri *HTTPReqInfo) {
 }
 
 func LogRequestHandler(h http.Handler, opt *LogRequestHandlerOptions) http.Handler {
+	if opt == nil {
+		opt = &LogRequestHandlerOptions{}
+	}
+
 	var logger *slog.Logger
-	if opt.Pretty {
-		logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
+	if opt.Logger != nil {
+		logger = opt.Logger
 	} else {
-		logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
+		writer := opt.Writer
+		if writer == nil {
+			writer = os.Stdout
+		}
+
+		if opt.Pretty {
+			logger = slog.New(slog.NewTextHandler(writer, nil))
+		} else {
+			logger = slog.New(slog.NewJSONHandler(writer, nil))
+		}
 	}
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
