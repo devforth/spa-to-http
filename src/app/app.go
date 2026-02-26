@@ -10,20 +10,24 @@ import (
 	"go-http-server/util"
 	"golang.org/x/exp/slices"
 	"io"
+	"log/slog"
 	"mime"
 	"net/http"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
 
 type App struct {
-	params         *param.Params
-	server         *http.Server
-	cache          *lru.TwoQueueCache
-	listenAndServe func(*http.Server) error
+	params             *param.Params
+	server             *http.Server
+	cache              *lru.TwoQueueCache
+	listenAndServe     func(*http.Server) error
+	authLoggerInstance *slog.Logger
+	authLoggerOnce     sync.Once
 }
 
 type ResponseItem struct {
@@ -64,10 +68,11 @@ func NewAppWithListenAndServe(params *param.Params, listenAndServe func(*http.Se
 	}
 
 	return App{
-		params:         params,
-		server:         nil,
-		cache:          cache,
-		listenAndServe: listenAndServe,
+		params:             params,
+		server:             nil,
+		cache:              cache,
+		listenAndServe:     listenAndServe,
+		authLoggerInstance: nil,
 	}
 }
 
