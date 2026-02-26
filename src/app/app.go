@@ -325,6 +325,16 @@ func (app *App) HandlerFuncNew(w http.ResponseWriter, r *http.Request) {
 
 func (app *App) Listen() {
 	var handlerFunc http.Handler = http.HandlerFunc(app.HandlerFuncNew)
+	if app.params.BasicAuthEnabled {
+		handlerFunc = app.BasicAuthMiddleware(handlerFunc)
+		if logger := app.authLogger(); logger != nil {
+			realm := app.params.BasicAuthRealm
+			if realm == "" {
+				realm = defaultBasicAuthRealm
+			}
+			logger.Info("[AUTH] enabled", "realm", realm)
+		}
+	}
 	if app.params.Logger {
 		handlerFunc = util.LogRequestHandler(handlerFunc, &util.LogRequestHandlerOptions{
 			Pretty: app.params.LogPretty,

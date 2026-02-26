@@ -99,6 +99,8 @@ func TestCompressFiles(t *testing.T) {
 		app5.CompressFiles()
 		os.Remove("app_test.go.br")
 		os.Remove("app_internal_test.go.br")
+		os.Remove("auth.go.br")
+		os.Remove("auth_test.go.br")
 		os.Remove("app.go.br")
 
 		params.Directory = "../../test/frontend/dist/vite.svg.br"

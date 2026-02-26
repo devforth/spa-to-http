@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"reflect"
 	"testing"
-
 	"github.com/urfave/cli/v2"
 )
 
@@ -28,6 +27,8 @@ func TestContextToParams(t *testing.T) {
 	e_logger := true
 	e_log_pretty := true
 	e_no_compress := []string{".map", ".zip"}
+	e_basic_auth := "user:pass"
+	e_basic_auth_realm := "MyRealm"
 
 	f.String("address", e_adress, "")
 	f.Int("port", e_port, "")
@@ -43,6 +44,8 @@ func TestContextToParams(t *testing.T) {
 	f.Bool("logger", e_logger, "")
 	f.Bool("log-pretty", e_log_pretty, "")
 	f.Var(cli.NewStringSlice(e_no_compress...), "no-compress", "")
+	f.String("basic-auth", e_basic_auth, "")
+	f.String("basic-auth-realm", e_basic_auth_realm, "")
 
 	ctx := cli.NewContext(nil, f, nil)
 	ctx.Context = context.WithValue(context.Background(), "key", "val")
@@ -108,6 +111,19 @@ func TestContextToParams(t *testing.T) {
 	if !reflect.DeepEqual(params.NoCompress, e_no_compress) {
 		t.Errorf("Got %v, expected %v", params.NoCompress, e_no_compress)
 	}
+
+	if params.BasicAuthEnabled != true {
+		t.Errorf("Got %t, expected %t", params.BasicAuthEnabled, true)
+	}
+	if params.BasicAuthUser != "user" {
+		t.Errorf("Got %s, expected %s", params.BasicAuthUser, "user")
+	}
+	if params.BasicAuthPass != "pass" {
+		t.Errorf("Got %s, expected %s", params.BasicAuthPass, "pass")
+	}
+	if params.BasicAuthRealm != e_basic_auth_realm {
+		t.Errorf("Got %s, expected %s", params.BasicAuthRealm, e_basic_auth_realm)
+	}
 }
 
 func TestContextToParamsWithAbsError(t *testing.T) {
@@ -129,5 +145,37 @@ func TestContextToParamsWithAbsError(t *testing.T) {
 	}
 	if params != nil {
 		t.Fatalf("Expected params to be nil on error, got %v", params)
+	}
+}
+
+func TestContextToParamsInvalidBasicAuthFormat(t *testing.T) {
+	tests := []struct {
+		name      string
+		basicAuth string
+	}{
+		{"missing colon", "user"},
+		{"empty user", ":pass"},
+		{"empty pass", "user:"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := flag.NewFlagSet("a", flag.ContinueOnError)
+			f.String("directory", "example", "")
+			f.String("basic-auth", tt.basicAuth, "")
+
+			ctx := cli.NewContext(nil, f, nil)
+			ctx.Context = context.WithValue(context.Background(), "key", "val")
+
+			params, err := param.ContextToParamsWithAbs(ctx, func(s string) (string, error) {
+				return s, nil
+			})
+			if err == nil {
+				t.Fatalf("expected error for basic-auth %q, got nil", tt.basicAuth)
+			}
+			if params != nil {
+				t.Fatalf("expected params to be nil on error, got %v", params)
+			}
+		})
 	}
 }

@@ -3,6 +3,7 @@ package param
 import (
 	"github.com/urfave/cli/v2"
 	"path/filepath"
+	"strings"
 )
 
 var Flags = []cli.Flag{
@@ -85,6 +86,16 @@ var Flags = []cli.Flag{
 		Name:    "no-compress",
 		Value:   nil,
 	},
+	&cli.StringFlag{
+		EnvVars: []string{"BASIC_AUTH"},
+		Name:    "basic-auth",
+		Value:   "",
+	},
+	&cli.StringFlag{
+		EnvVars: []string{"BASIC_AUTH_REALM"},
+		Name:    "basic-auth-realm",
+		Value:   "",
+	},
 }
 
 type Params struct {
@@ -102,6 +113,11 @@ type Params struct {
 	Logger                  bool
 	LogPretty               bool
 	NoCompress              []string
+	BasicAuthRaw            string
+	BasicAuthUser           string
+	BasicAuthPass           string
+	BasicAuthRealm          string
+	BasicAuthEnabled        bool
 	//DirectoryListing        bool
 }
 
@@ -113,6 +129,25 @@ func ContextToParamsWithAbs(c *cli.Context, abs func(string) (string, error)) (*
 	directory, err := abs(c.String("directory"))
 	if err != nil {
 		return nil, err
+	}
+
+	basicAuthRaw := c.String("basic-auth")
+	basicAuthRealm := c.String("basic-auth-realm")
+	var basicAuthUser string
+	var basicAuthPass string
+	var basicAuthEnabled bool
+
+	if basicAuthRaw != "" {
+		user, pass, ok := strings.Cut(basicAuthRaw, ":")
+		if !ok || user == "" || pass == "" {
+			return nil, cli.Exit("invalid basic-auth format, expected username:password", 1)
+		}
+		basicAuthUser = user
+		basicAuthPass = pass
+		basicAuthEnabled = true
+		if basicAuthRealm == "" {
+			basicAuthRealm = "Restricted"
+		}
 	}
 
 	return &Params{
@@ -130,6 +165,11 @@ func ContextToParamsWithAbs(c *cli.Context, abs func(string) (string, error)) (*
 		Logger:                  c.Bool("logger"),
 		LogPretty:               c.Bool("log-pretty"),
 		NoCompress:              c.StringSlice("no-compress"),
+		BasicAuthRaw:            basicAuthRaw,
+		BasicAuthUser:           basicAuthUser,
+		BasicAuthPass:           basicAuthPass,
+		BasicAuthRealm:          basicAuthRealm,
+		BasicAuthEnabled:        basicAuthEnabled,
 		//DirectoryListing:        c.Bool("directory-listing"),
 	}, nil
 }

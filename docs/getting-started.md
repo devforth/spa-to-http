@@ -53,6 +53,16 @@ DIRECTORY=../test/frontend/dist \
 go run .
 ```
 
+### Basic Auth (Console)
+
+```bash
+cd src
+go run . \
+  --directory ../test/frontend/dist \
+  --basic-auth "admin:secret" \
+  --basic-auth-realm "SPA Server"
+```
+
 Full list of options is in [Configuration](configuration.md).
 
 ## Serve a Local Build (Docker)
@@ -63,6 +73,16 @@ docker run --rm -p 8080:8080 -v $(pwd)/dist:/code devforth/spa-to-http:latest
 ```
 
 Open `http://localhost:8080` in your browser.
+
+### Basic Auth (Docker)
+
+```bash
+docker run --rm -p 8080:8080 \
+  -e BASIC_AUTH="admin:secret" \
+  -e BASIC_AUTH_REALM="SPA Server" \
+  -v $(pwd)/dist:/code \
+  devforth/spa-to-http:latest
+```
 
 ## Build + Run in One Dockerfile
 

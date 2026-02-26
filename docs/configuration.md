@@ -21,6 +21,8 @@
 | CACHE_BUFFER | `--cache-buffer <number>` | Max size of the LRU cache in bytes | `51200` |
 | LOGGER | `--logger` | Enable request logging | `false` |
 | LOG_PRETTY | `--log-pretty` | Pretty-print logs instead of JSON | `false` |
+| BASIC_AUTH | `--basic-auth <username:password>` | Enable Basic Auth (username:password) | (empty) |
+| BASIC_AUTH_REALM | `--basic-auth-realm <string>` | Basic Auth realm name | `Restricted` |
 
 ## Examples
 
