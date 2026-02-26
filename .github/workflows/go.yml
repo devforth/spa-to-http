@@ -2,7 +2,7 @@ name: Go
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "dev" ]
   pull_request:
     branches: [ "main" ]
 
@@ -28,7 +28,7 @@ jobs:
         cd src
         go test ./... -coverprofile cover.out
         go tool cover -func cover.out > covered.txt
-      
+
     - name: Get coverage
       run: |
         cd src
@@ -40,7 +40,7 @@ jobs:
         BRANCH_NAME="${PATHS[1]}_${PATHS[2]}"
         echo $BRANCH_NAME
         echo "BRANCH=$(echo ${BRANCH_NAME})" >> $GITHUB_ENV
-        
+
     - name: Create passing badge
       uses: schneegans/dynamic-badges-action@v1.0.0
       if: ${{ env.COVERAGE!=null }}
@@ -52,7 +52,7 @@ jobs:
         message: Passed
         color: green
         namedLogo: checkmarx
-        
+
     - name: Create coverage badge
       uses: schneegans/dynamic-badges-action@v1.0.0
       with:
