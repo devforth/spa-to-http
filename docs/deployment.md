@@ -34,6 +34,7 @@ services:
 - Use `--port` if you run the container on a non-default port.
 - Enable compression (`--brotli` or `--gzip`) when serving large static bundles.
 - For fixed asset paths (for example, a service worker), use `--ignore-cache-control-paths` to avoid CDN caching issues.
+- Add rate limiting at the reverse proxy (Traefik, Nginx, Cloudflare) to mitigate brute-force attempts.
 
 ## See Also
 

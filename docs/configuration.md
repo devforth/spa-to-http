@@ -24,6 +24,10 @@
 | BASIC_AUTH | `--basic-auth <username:password>` | Enable Basic Auth (username:password) | (empty) |
 | BASIC_AUTH_REALM | `--basic-auth-realm <string>` | Basic Auth realm name | `Restricted` |
 
+## Security Note
+
+When Basic Auth is enabled, always run behind HTTPS (or a TLS-terminating reverse proxy). Basic Auth over plain HTTP exposes credentials.
+
 ## Examples
 
 Enable Brotli:
