@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"flag"
+	"github.com/urfave/cli/v2"
 	"go-http-server/param"
 	"path/filepath"
 	"reflect"
 	"testing"
-	"github.com/urfave/cli/v2"
 )
 
 func TestContextToParams(t *testing.T) {
@@ -177,5 +177,50 @@ func TestContextToParamsInvalidBasicAuthFormat(t *testing.T) {
 				t.Fatalf("expected params to be nil on error, got %v", params)
 			}
 		})
+	}
+}
+
+func TestContextToParamsBasicAuthDefaultRealm(t *testing.T) {
+	f := flag.NewFlagSet("a", flag.ContinueOnError)
+	f.String("directory", "example", "")
+	f.String("basic-auth", "user:pass", "")
+
+	ctx := cli.NewContext(nil, f, nil)
+	ctx.Context = context.WithValue(context.Background(), "key", "val")
+
+	params, err := param.ContextToParamsWithAbs(ctx, func(s string) (string, error) {
+		return s, nil
+	})
+	if err != nil {
+		t.Fatalf("expected nil error, got %v", err)
+	}
+	if !params.BasicAuthEnabled {
+		t.Fatalf("expected basic auth enabled")
+	}
+	if params.BasicAuthRealm != "Restricted" {
+		t.Fatalf("expected default realm Restricted, got %s", params.BasicAuthRealm)
+	}
+}
+
+func TestContextToParamsBasicAuthDisabledWhenEmpty(t *testing.T) {
+	f := flag.NewFlagSet("a", flag.ContinueOnError)
+	f.String("directory", "example", "")
+	f.String("basic-auth", "", "")
+	f.String("basic-auth-realm", "ShouldNotApply", "")
+
+	ctx := cli.NewContext(nil, f, nil)
+	ctx.Context = context.WithValue(context.Background(), "key", "val")
+
+	params, err := param.ContextToParamsWithAbs(ctx, func(s string) (string, error) {
+		return s, nil
+	})
+	if err != nil {
+		t.Fatalf("expected nil error, got %v", err)
+	}
+	if params.BasicAuthEnabled {
+		t.Fatalf("expected basic auth disabled")
+	}
+	if params.BasicAuthRealm != "ShouldNotApply" {
+		t.Fatalf("expected realm value to be preserved, got %s", params.BasicAuthRealm)
 	}
 }
