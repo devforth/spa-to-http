@@ -79,5 +79,10 @@ fabric.properties
 public/
 dist/
 
+.agents/
+.ai-factory/
 .codex/
 .ai-factory.json
+.mcp.json
+skills-lock.json
+AGENTS.md
