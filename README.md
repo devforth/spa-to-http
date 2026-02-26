@@ -15,6 +15,8 @@ Serve a built SPA bundle over HTTP with sensible defaults for caching and option
 docker run --rm -p 8080:8080 -v $(pwd)/dist:/code devforth/spa-to-http:latest
 ```
 
+For local (non-Docker) runs, see [Local Run (Console)](docs/getting-started.md#local-run-console).
+
 ## Key Features
 
 - Zero-configuration Docker setup for common SPA outputs
