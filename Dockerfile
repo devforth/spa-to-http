@@ -1,4 +1,4 @@
-FROM golang:1.24-alpine3.21 AS builder
+FROM golang:1.24.13-alpine3.23 AS builder
 
 WORKDIR /code/
 
@@ -6,7 +6,7 @@ ADD src/ .
 
 RUN go build -o dist/ -ldflags "-s -w"
 
-FROM alpine:3.21
+FROM alpine:3.23
 
 WORKDIR /code/
 
