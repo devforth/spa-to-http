@@ -2,7 +2,7 @@
 
 # Configuration
 
-spa-to-http supports both environment variables and CLI flags. Environment variables map directly to the CLI options.
+`spa-to-http` supports both environment variables and CLI flags. Environment variables map directly to the CLI options.
 
 ## Options
 

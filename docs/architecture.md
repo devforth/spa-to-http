@@ -2,9 +2,7 @@
 
 # Architecture
 
-spa-to-http is a single Go binary focused on static file serving for SPA bundles. It keeps the runtime simple, with a small number of packages and minimal configuration.
-
-For detailed architectural guidance and dependency rules, see `.ai-factory/ARCHITECTURE.md`.
+`spa-to-http` is a single Go binary focused on static file serving for SPA bundles. It keeps the runtime simple, with a small number of packages and minimal configuration.
 
 ## Project Structure
 
@@ -34,4 +32,4 @@ For detailed architectural guidance and dependency rules, see `.ai-factory/ARCHI
 
 - [Configuration](configuration.md) — Environment variables and CLI flags
 - [Getting Started](getting-started.md) — Install, build, and run
-- [Benchmarks](benchmarks.md) — spa-to-http vs Nginx
+- [Benchmarks](benchmarks.md) — `spa-to-http` vs Nginx

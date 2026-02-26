@@ -2,7 +2,7 @@
 
 # Deployment
 
-spa-to-http is designed to run as a small container and sit behind a reverse proxy. It works well with Traefik and CDNs like Cloudflare.
+`spa-to-http` is designed to run as a small container and sit behind a reverse proxy. It works well with Traefik and CDNs like Cloudflare.
 
 ## Traefik + Docker Compose Example
 
