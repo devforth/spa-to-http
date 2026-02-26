@@ -136,6 +136,17 @@ func (app *App) CompressFiles() {
 }
 
 func (app *App) GetOrCreateResponseItem(requestedPath string, compression Compression, actualContentType *string) (*ResponseItem, int) {
+	return app.getOrCreateResponseItemWithOpener(requestedPath, compression, actualContentType, nil)
+}
+
+func (app *App) getOrCreateResponseItemWithOpener(requestedPath string, compression Compression, actualContentType *string, opener func(string, string) (http.File, error)) (*ResponseItem, int) {
+	if opener == nil {
+		opener = func(dirPath, fileName string) (http.File, error) {
+			dir := http.Dir(dirPath)
+			return dir.Open(fileName)
+		}
+	}
+
 	rootIndexPath := path.Join(app.params.Directory, "index.html")
 
 	switch compression {
@@ -153,22 +164,20 @@ func (app *App) GetOrCreateResponseItem(requestedPath string, compression Compre
 				return &responseItem, 0
 			} else {
 				localRedirectItem := cacheValue.(string)
-				return app.GetOrCreateResponseItem(localRedirectItem, compression, actualContentType)
+				return app.getOrCreateResponseItemWithOpener(localRedirectItem, compression, actualContentType, opener)
 			}
 		}
 	}
 
 	dirPath, fileName := filepath.Split(requestedPath)
-	dir := http.Dir(dirPath)
-
-	file, err := dir.Open(fileName)
+	file, err := opener(dirPath, fileName)
 	if err != nil {
 		if app.params.SpaMode && compression == None && requestedPath != rootIndexPath {
 			newPath := path.Join(app.params.Directory, "index.html")
 			if app.cache != nil {
 				app.cache.Add(requestedPath, newPath)
 			}
-			return app.GetOrCreateResponseItem(newPath, compression, actualContentType)
+			return app.getOrCreateResponseItemWithOpener(newPath, compression, actualContentType, opener)
 		}
 		return nil, http.StatusNotFound
 	}
@@ -181,7 +190,7 @@ func (app *App) GetOrCreateResponseItem(requestedPath string, compression Compre
 			if app.cache != nil {
 				app.cache.Add(requestedPath, newPath)
 			}
-			return app.GetOrCreateResponseItem(newPath, compression, actualContentType)
+			return app.getOrCreateResponseItemWithOpener(newPath, compression, actualContentType, opener)
 		}
 		return nil, http.StatusNotFound
 	}
@@ -192,13 +201,13 @@ func (app *App) GetOrCreateResponseItem(requestedPath string, compression Compre
 			if app.cache != nil {
 				app.cache.Add(requestedPath, newPath)
 			}
-			return app.GetOrCreateResponseItem(newPath, compression, actualContentType)
+			return app.getOrCreateResponseItemWithOpener(newPath, compression, actualContentType, opener)
 		} else if !app.params.SpaMode && compression == None {
 			newPath := path.Join(requestedPath, "index.html")
 			if app.cache != nil {
 				app.cache.Add(requestedPath, newPath)
 			}
-			return app.GetOrCreateResponseItem(newPath, compression, actualContentType)
+			return app.getOrCreateResponseItemWithOpener(newPath, compression, actualContentType, opener)
 		}
 
 		return nil, http.StatusNotFound

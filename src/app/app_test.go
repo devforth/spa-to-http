@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -97,6 +98,7 @@ func TestCompressFiles(t *testing.T) {
 		app5 := app.NewApp(&params)
 		app5.CompressFiles()
 		os.Remove("app_test.go.br")
+		os.Remove("app_internal_test.go.br")
 		os.Remove("app.go.br")
 
 		params.Directory = "../../test/frontend/dist/vite.svg.br"
@@ -343,5 +345,254 @@ func TestGetFilePath(t *testing.T) {
 	_, valid = app.GetFilePath("test/../test/../index.html")
 	if !valid {
 		t.Errorf("Expected false, got %t", valid)
+	}
+}
+
+func TestShouldSkipCompression(t *testing.T) {
+	params := param.Params{
+		Directory:  ".",
+		NoCompress: []string{".SVG", ".map"},
+	}
+	app1 := app.NewApp(&params)
+
+	if !app1.ShouldSkipCompression("file.svg") {
+		t.Errorf("Expected .svg to be skipped for compression")
+	}
+	if app1.ShouldSkipCompression("file.txt") {
+		t.Errorf("Expected .txt not to be skipped for compression")
+	}
+}
+
+func TestHandlerFuncNewInvalidPath(t *testing.T) {
+	dir := t.TempDir()
+	params := param.Params{
+		Directory: dir,
+		SpaMode:   true,
+	}
+	app1 := app.NewApp(&params)
+
+	req := httptest.NewRequest("GET", "/../secret.txt", nil)
+	rec := httptest.NewRecorder()
+	app1.HandlerFuncNew(rec, req)
+
+	if rec.Code != http.StatusNotFound {
+		t.Errorf("Expected status %d, got %d", http.StatusNotFound, rec.Code)
+	}
+}
+
+func TestHandlerFuncNewRangeSkipsCompressionAndCacheControl(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "index.html")
+	if err := os.WriteFile(path, []byte("range-test"), 0600); err != nil {
+		t.Fatalf("failed to write file: %v", err)
+	}
+
+	params := param.Params{
+		Directory:               dir,
+		Threshold:               1,
+		Brotli:                  true,
+		CacheControlMaxAge:      10,
+		IgnoreCacheControlPaths: nil,
+		SpaMode:                 true,
+	}
+	app1 := app.NewApp(&params)
+
+	req := httptest.NewRequest("GET", "/index.html", nil)
+	req.Header.Set("Range", "bytes=0-1")
+	req.Header.Set("Accept-Encoding", "br")
+	rec := httptest.NewRecorder()
+	app1.HandlerFuncNew(rec, req)
+
+	if rec.Header().Get("Content-Encoding") != "" {
+		t.Errorf("Expected no Content-Encoding for range request, got %s", rec.Header().Get("Content-Encoding"))
+	}
+	if rec.Header().Get("Cache-Control") != "" {
+		t.Errorf("Expected no Cache-Control for range request, got %s", rec.Header().Get("Cache-Control"))
+	}
+	if rec.Header().Get("Content-Type") == "" {
+		t.Errorf("Expected Content-Type to be set")
+	}
+}
+
+func TestHandlerFuncNewIgnoreCacheControlPath(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "asset.bin")
+	if err := os.WriteFile(path, []byte("data"), 0600); err != nil {
+		t.Fatalf("failed to write file: %v", err)
+	}
+
+	params := param.Params{
+		Directory:               dir,
+		Threshold:               1,
+		Brotli:                  true,
+		CacheControlMaxAge:      123,
+		IgnoreCacheControlPaths: []string{"/asset.bin"},
+		SpaMode:                 true,
+	}
+	app1 := app.NewApp(&params)
+
+	req := httptest.NewRequest("GET", "/asset.bin", nil)
+	req.Header.Set("Accept-Encoding", "br")
+	rec := httptest.NewRecorder()
+	app1.HandlerFuncNew(rec, req)
+
+	if rec.Header().Get("Cache-Control") != "no-store" {
+		t.Errorf("Expected Cache-Control no-store, got %s", rec.Header().Get("Cache-Control"))
+	}
+}
+
+func TestHandlerFuncNewNoCompressExtension(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "asset.svg")
+	if err := os.WriteFile(path, []byte("svgcontent"), 0600); err != nil {
+		t.Fatalf("failed to write file: %v", err)
+	}
+
+	params := param.Params{
+		Directory:  dir,
+		Threshold:  1,
+		Brotli:     true,
+		NoCompress: []string{".svg"},
+		SpaMode:    true,
+	}
+	app1 := app.NewApp(&params)
+
+	req := httptest.NewRequest("GET", "/asset.svg", nil)
+	req.Header.Set("Accept-Encoding", "br")
+	rec := httptest.NewRecorder()
+	app1.HandlerFuncNew(rec, req)
+
+	if rec.Header().Get("Content-Encoding") != "" {
+		t.Errorf("Expected no Content-Encoding for no-compress extension, got %s", rec.Header().Get("Content-Encoding"))
+	}
+}
+
+func TestHandlerFuncNewBelowThresholdNoCompression(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "small.txt")
+	if err := os.WriteFile(path, []byte("tiny"), 0600); err != nil {
+		t.Fatalf("failed to write file: %v", err)
+	}
+
+	params := param.Params{
+		Directory:          dir,
+		Threshold:          1024,
+		Brotli:             true,
+		SpaMode:            true,
+		CacheControlMaxAge: 1,
+	}
+	app1 := app.NewApp(&params)
+
+	req := httptest.NewRequest("GET", "/small.txt", nil)
+	req.Header.Set("Accept-Encoding", "br")
+	rec := httptest.NewRecorder()
+	app1.HandlerFuncNew(rec, req)
+
+	if rec.Header().Get("Content-Encoding") != "" {
+		t.Errorf("Expected no Content-Encoding below threshold, got %s", rec.Header().Get("Content-Encoding"))
+	}
+}
+
+func TestHandlerFuncNewNotFoundWhenSpaDisabled(t *testing.T) {
+	dir := t.TempDir()
+	params := param.Params{
+		Directory: dir,
+		SpaMode:   false,
+	}
+	app1 := app.NewApp(&params)
+
+	req := httptest.NewRequest("GET", "/missing.txt", nil)
+	rec := httptest.NewRecorder()
+	app1.HandlerFuncNew(rec, req)
+
+	if rec.Code != http.StatusNotFound {
+		t.Errorf("Expected status %d, got %d", http.StatusNotFound, rec.Code)
+	}
+}
+
+func TestCompressFilesSkipsNoCompressAndDirectories(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.Mkdir(filepath.Join(dir, "subdir"), 0700); err != nil {
+		t.Fatalf("failed to create subdir: %v", err)
+	}
+	filePath := filepath.Join(dir, "skip.txt")
+	if err := os.WriteFile(filePath, []byte("content"), 0600); err != nil {
+		t.Fatalf("failed to write file: %v", err)
+	}
+
+	params := param.Params{
+		Directory:  dir,
+		Gzip:       true,
+		Threshold:  1,
+		NoCompress: []string{".txt"},
+	}
+	app1 := app.NewApp(&params)
+	app1.CompressFiles()
+
+	if _, err := os.Stat(filePath + ".gz"); !os.IsNotExist(err) {
+		t.Errorf("Expected no compressed file for no-compress extension")
+	}
+}
+
+func TestCompressFilesSkipsBelowThreshold(t *testing.T) {
+	dir := t.TempDir()
+	filePath := filepath.Join(dir, "small.txt")
+	if err := os.WriteFile(filePath, []byte("tiny"), 0600); err != nil {
+		t.Fatalf("failed to write file: %v", err)
+	}
+
+	params := param.Params{
+		Directory: dir,
+		Gzip:      true,
+		Threshold: 1024,
+	}
+	app1 := app.NewApp(&params)
+	app1.CompressFiles()
+
+	if _, err := os.Stat(filePath + ".gz"); !os.IsNotExist(err) {
+		t.Errorf("Expected no compressed file below threshold")
+	}
+}
+
+func TestGetOrCreateResponseItemMissingNoSpa(t *testing.T) {
+	dir := t.TempDir()
+	params := param.Params{
+		Directory: dir,
+		SpaMode:   false,
+	}
+	app1 := app.NewApp(&params)
+
+	item, code := app1.GetOrCreateResponseItem(filepath.Join(dir, "missing.txt"), 0, nil)
+	if item != nil {
+		t.Fatalf("Expected nil item for missing file, got %#v", item)
+	}
+	if code != http.StatusNotFound {
+		t.Fatalf("Expected status %d, got %d", http.StatusNotFound, code)
+	}
+}
+
+func TestListenWithLoggerAndInjectedListener(t *testing.T) {
+	params := param.Params{
+		Address:     "127.0.0.1",
+		Port:        8081,
+		Directory:   ".",
+		Logger:      true,
+		LogPretty:   true,
+		SpaMode:     true,
+		CacheBuffer: 1,
+	}
+	var gotServer *http.Server
+	app1 := app.NewAppWithListenAndServe(&params, func(server *http.Server) error {
+		gotServer = server
+		return nil
+	})
+
+	app1.Listen()
+
+	if gotServer == nil {
+		t.Fatalf("expected server to be passed to listenAndServe")
+	}
+	if gotServer.Handler == nil {
+		t.Fatalf("expected handler to be set")
 	}
 }
