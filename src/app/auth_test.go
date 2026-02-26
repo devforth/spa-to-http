@@ -4,6 +4,7 @@ import (
 	"go-http-server/param"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 )
 
@@ -35,6 +36,41 @@ func TestBasicAuthMiddlewareMissingHeader(t *testing.T) {
 		BasicAuthEnabled: true,
 		BasicAuthUser:    "user",
 		BasicAuthPass:    "pass",
+	}
+	app := NewApp(&params)
+
+	handler := app.BasicAuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := httptest.NewRequest("GET", "/", nil)
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("expected status %d, got %d", http.StatusUnauthorized, rec.Code)
+	}
+	if got := rec.Header().Get("WWW-Authenticate"); got != "Basic realm=\"Restricted\"" {
+		t.Fatalf("expected realm header, got %s", got)
+	}
+}
+
+func TestBasicAuthMiddlewareMissingHeaderWithLogger(t *testing.T) {
+	orig := os.Getenv("LOG_LEVEL")
+	_ = os.Setenv("LOG_LEVEL", "debug")
+	t.Cleanup(func() {
+		if orig == "" {
+			_ = os.Unsetenv("LOG_LEVEL")
+		} else {
+			_ = os.Setenv("LOG_LEVEL", orig)
+		}
+	})
+
+	params := param.Params{
+		BasicAuthEnabled: true,
+		BasicAuthUser:    "user",
+		BasicAuthPass:    "pass",
+		Logger:           true,
 	}
 	app := NewApp(&params)
 
@@ -103,5 +139,39 @@ func TestBasicAuthMiddlewareSuccess(t *testing.T) {
 	}
 	if rec.Body.String() != "ok" {
 		t.Fatalf("expected body ok, got %s", rec.Body.String())
+	}
+}
+
+func TestBasicAuthMiddlewareWithLoggerEnabled(t *testing.T) {
+	orig := os.Getenv("LOG_LEVEL")
+	_ = os.Setenv("LOG_LEVEL", "debug")
+	t.Cleanup(func() {
+		if orig == "" {
+			_ = os.Unsetenv("LOG_LEVEL")
+		} else {
+			_ = os.Setenv("LOG_LEVEL", orig)
+		}
+	})
+
+	params := param.Params{
+		BasicAuthEnabled: true,
+		BasicAuthUser:    "user",
+		BasicAuthPass:    "pass",
+		Logger:           true,
+		LogPretty:        true,
+	}
+	app := NewApp(&params)
+
+	handler := app.BasicAuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := httptest.NewRequest("GET", "/", nil)
+	req.SetBasicAuth("user", "pass")
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
 	}
 }
