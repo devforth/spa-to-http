@@ -4,45 +4,106 @@
 
 # spa-to-http
 
-> World's fastest lightweight zero-configuration SPA HTTP server.
+> A zero-configuration HTTP server for built SPA bundles.
 
-Serve a built SPA bundle over HTTP with sensible defaults for caching and optional Brotli/Gzip compression. It’s designed to run cleanly in Docker and behind reverse proxies like Traefik or Cloudflare.
+`spa-to-http` serves your built frontend (`dist/`) with SPA fallback routing, cache-friendly defaults, and optional Brotli/Gzip compression.
 
-## Quick Start
+If you want to ship a static SPA quickly in Docker without writing Nginx config, this is the fast path.
+
+## Why use spa-to-http
+
+- Fast-to-deploy: run one container, mount your build folder, done.
+- Operationally simple: no custom web-server config files.
+- Lightweight runtime: small Docker image and fast startup.
+- SPA-focused defaults: sensible handling for `index.html`, hashed assets, and optional compression.
+
+## Benchmark Highlights
+
+From [`docs/benchmarks.md`](docs/benchmarks.md):
+
+- Startup readiness (100 startups): `1.358s` vs Nginx `1.514s` (`11.5%` faster)
+- Small-file throughput (0.5 KiB HTML): `80,497 req/s` vs `79,214 req/s`
+- Mid-size JS throughput (5 KiB): `66,126 req/s` vs `62,831 req/s` (`5.2%` faster)
+- Docker image size comparison in docs: `13.2 MiB` (`spa-to-http`) vs `142 MiB` (Nginx sample image)
+
+See full comparison table and source methodology in [`docs/benchmarks.md`](docs/benchmarks.md).
+
+## Get Started in 60 Seconds
 
 ```bash
 # Serve ./dist at http://localhost:8080
 docker run --rm -p 8080:8080 -v $(pwd)/dist:/code devforth/spa-to-http:latest
 ```
 
-For local (non-Docker) runs, see [Local Run (Console)](docs/getting-started.md#local-run-console).
+Open `http://localhost:8080`.
 
-## Key Features
+## Recommended: Build SPA + Runtime in One Dockerfile
 
-- Zero-configuration Docker setup for common SPA outputs
-- Small image and fast startup (Go binary)
-- Optional Brotli/Gzip compression
-- Cache-control optimized for hashed assets and index.html
-- Works with popular SPA toolchains (React, Vue, Angular, Svelte, Vite, Webpack)
+In most cases, users prefer building the SPA and serving it in one image:
 
-## Example
+```dockerfile
+FROM node:20-alpine AS builder
+WORKDIR /code
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
 
-```bash
-# Enable Brotli and serve on a custom port
-docker run --rm -p 8082:8082 -v $(pwd)/dist:/code devforth/spa-to-http:latest --brotli --port 8082
+FROM devforth/spa-to-http:latest
+COPY --from=builder /code/dist/ .
 ```
 
----
+Build and run:
 
-## Documentation
+```bash
+docker build -t my-spa .
+docker run --rm -p 8080:8080 my-spa
+```
 
-| Guide | Description |
-|-------|-------------|
-| [Getting Started](docs/getting-started.md) | Install, build, and run | 
-| [Configuration](docs/configuration.md) | Environment variables and CLI flags |
-| [Deployment](docs/deployment.md) | Docker and reverse proxy setup |
-| [Architecture](docs/architecture.md) | Project structure and request flow |
-| [Benchmarks](docs/benchmarks.md) | spa-to-http vs Nginx |
+## Common Copy-Paste Commands
+
+### Custom port + Brotli
+
+```bash
+docker run --rm -p 8082:8082 \
+  -v $(pwd)/dist:/code \
+  devforth/spa-to-http:latest \
+  --brotli --port 8082
+```
+
+### Basic Auth (Docker)
+
+```bash
+docker run --rm -p 8080:8080 \
+  -e BASIC_AUTH="admin:secret" \
+  -e BASIC_AUTH_REALM="SPA Server" \
+  -v $(pwd)/dist:/code \
+  devforth/spa-to-http:latest
+```
+
+### Compose / reverse proxy setup
+
+For full Docker Compose and Traefik examples, see [`docs/deployment.md`](docs/deployment.md).
+
+## Feature Snapshot
+
+- Zero-configuration Docker usage for SPA bundles
+- Optional Brotli/Gzip compression
+- Cache-control tuning (`--cache-max-age`, `--ignore-cache-control-paths`)
+- SPA mode toggle (`--spa` / `SPA_MODE`)
+- In-memory file cache (`--cache`, `--cache-buffer`)
+- Optional request logging and basic auth
+
+## Documentation Map
+
+| Need | Go to |
+|---|---|
+| Fast Docker onboarding | [`docs/getting-started.md`](docs/getting-started.md) |
+| Local development and source-based workflows | [`docs/development.md`](docs/development.md) |
+| Full flag/env reference and examples | [`docs/configuration.md`](docs/configuration.md) |
+| Deployment behind Traefik / reverse proxy | [`docs/deployment.md`](docs/deployment.md) |
+| Internal package layout and request flow | [`docs/architecture.md`](docs/architecture.md) |
+| Detailed benchmark tables and source link | [`docs/benchmarks.md`](docs/benchmarks.md) |
 
 ## License
 

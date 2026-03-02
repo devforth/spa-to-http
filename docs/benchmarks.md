@@ -8,10 +8,10 @@
 |---|---|---|
 | Zero-configuration | ✅ No config files, SPA serving works out of the box | ❌ Requires dedicated config file |
 | Config via env/CLI | ✅ Yes | ❌ No |
-| Docker image size | ✅ 13.2 MiB (v1.0.3) | ❌ 142 MiB (v1.23.1) |
+| Docker image size | ✅ 7.54 MiB (v1.1.1) | ❌ 142 MiB (v1.23.1) |
 | Brotli out-of-the-box | ✅ Yes | ❌ Requires module |
 
-Performance numbers from the benchmark section of this post:
+Performance numbers and benchmark setup details are from:
 `https://devforth.io/blog/deploy-react-vue-angular-in-docker-simply-and-efficiently-using-spa-to-http-and-traefik/`
 
 | | spa-to-http | Nginx |

@@ -1,4 +1,4 @@
-[← Configuration](configuration.md) · [Back to README](../README.md) · [Architecture →](architecture.md)
+[← Configuration](configuration.md) · [Development](development.md) · [Back to README](../README.md) · [Architecture →](architecture.md)
 
 # Deployment
 

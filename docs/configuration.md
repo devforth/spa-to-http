@@ -1,4 +1,4 @@
-[← Getting Started](getting-started.md) · [Back to README](../README.md) · [Deployment →](deployment.md)
+[← Getting Started](getting-started.md) · [Development](development.md) · [Back to README](../README.md) · [Deployment →](deployment.md)
 
 # Configuration
 
