@@ -2,6 +2,7 @@ package param
 
 import (
 	"github.com/urfave/cli/v2"
+	"path"
 	"path/filepath"
 	"strings"
 )
@@ -39,6 +40,11 @@ var Flags = []cli.Flag{
 		Name:    "directory",
 		Aliases: []string{"d"},
 		Value:   ".",
+	},
+	&cli.StringFlag{
+		EnvVars: []string{"BASE_PATH"},
+		Name:    "base-path",
+		Value:   "/",
 	},
 	// TODO
 	//&cli.BoolFlag{
@@ -105,6 +111,7 @@ type Params struct {
 	Brotli                  bool
 	Threshold               int64
 	Directory               string
+	BasePath                string
 	CacheControlMaxAge      int64
 	SpaMode                 bool
 	IgnoreCacheControlPaths []string
@@ -127,6 +134,10 @@ func ContextToParams(c *cli.Context) (*Params, error) {
 
 func ContextToParamsWithAbs(c *cli.Context, abs func(string) (string, error)) (*Params, error) {
 	directory, err := abs(c.String("directory"))
+	if err != nil {
+		return nil, err
+	}
+	basePath, err := normalizeBasePath(c.String("base-path"))
 	if err != nil {
 		return nil, err
 	}
@@ -157,6 +168,7 @@ func ContextToParamsWithAbs(c *cli.Context, abs func(string) (string, error)) (*
 		Brotli:                  c.Bool("brotli"),
 		Threshold:               c.Int64("threshold"),
 		Directory:               directory,
+		BasePath:                basePath,
 		CacheControlMaxAge:      c.Int64("cache-max-age"),
 		SpaMode:                 c.Bool("spa"),
 		IgnoreCacheControlPaths: c.StringSlice("ignore-cache-control-paths"),
@@ -172,4 +184,22 @@ func ContextToParamsWithAbs(c *cli.Context, abs func(string) (string, error)) (*
 		BasicAuthEnabled:        basicAuthEnabled,
 		//DirectoryListing:        c.Bool("directory-listing"),
 	}, nil
+}
+
+func normalizeBasePath(basePath string) (string, error) {
+	basePath = strings.TrimSpace(basePath)
+	if basePath == "" {
+		return "/", nil
+	}
+	if strings.Contains(basePath, "?") || strings.Contains(basePath, "#") {
+		return "", cli.Exit("invalid base-path format, expected a URL path prefix without query or fragment", 1)
+	}
+	if strings.Contains(basePath, "..") {
+		return "", cli.Exit("invalid base-path format, '..' is not allowed", 1)
+	}
+	if !strings.HasPrefix(basePath, "/") {
+		basePath = "/" + basePath
+	}
+	basePath = path.Clean(basePath)
+	return basePath, nil
 }

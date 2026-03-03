@@ -40,7 +40,8 @@ go run . \
   --logger \
   --log-pretty \
   --cache-max-age 3600 \
-  --threshold 2048
+  --threshold 2048 \
+  --base-path /app
 ```
 
 ## Configure via Environment Variables

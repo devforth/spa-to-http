@@ -81,6 +81,17 @@ docker run --rm -p 8080:8080 \
   devforth/spa-to-http:latest
 ```
 
+### Subpath hosting (`/app`)
+
+```bash
+docker run --rm -p 8080:8080 \
+  -v $(pwd)/dist:/code \
+  devforth/spa-to-http:latest \
+  --base-path /app
+```
+
+This maps `/app/...` requests to the same build root (for example `/app/assets/main.js` -> `/code/assets/main.js`).
+
 ### Compose / reverse proxy setup
 
 For full Docker Compose and Traefik examples, see [`docs/deployment.md`](docs/deployment.md).
@@ -90,6 +101,7 @@ For full Docker Compose and Traefik examples, see [`docs/deployment.md`](docs/de
 - Zero-configuration Docker usage for SPA bundles
 - Optional Brotli/Gzip compression
 - Cache-control tuning (`--cache-max-age`, `--ignore-cache-control-paths`)
+- Subpath hosting with URL prefixes (`--base-path`)
 - SPA mode toggle (`--spa` / `SPA_MODE`)
 - In-memory file cache (`--cache`, `--cache-buffer`)
 - Optional request logging and basic auth

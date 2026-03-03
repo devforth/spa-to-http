@@ -261,8 +261,24 @@ func (app *App) GetFilePath(urlPath string) (string, bool) {
 	return requestedPath, true
 }
 
+func (app *App) mapRequestPath(urlPath string) string {
+	basePath := app.params.BasePath
+	if basePath == "" || basePath == "/" {
+		return urlPath
+	}
+	if urlPath == basePath || urlPath == basePath+"/" {
+		return "/"
+	}
+	basePathWithSlash := basePath + "/"
+	if strings.HasPrefix(urlPath, basePathWithSlash) {
+		return strings.TrimPrefix(urlPath, basePath)
+	}
+	return urlPath
+}
+
 func (app *App) HandlerFuncNew(w http.ResponseWriter, r *http.Request) {
-	requestedPath, valid := app.GetFilePath(r.URL.Path)
+	mappedRequestPath := app.mapRequestPath(r.URL.Path)
+	requestedPath, valid := app.GetFilePath(mappedRequestPath)
 
 	if !valid {
 		w.WriteHeader(http.StatusNotFound)
@@ -283,7 +299,9 @@ func (app *App) HandlerFuncNew(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if slices.Contains(app.params.IgnoreCacheControlPaths, r.URL.Path) || path.Ext(responseItem.Name) == ".html" {
+	if slices.Contains(app.params.IgnoreCacheControlPaths, r.URL.Path) ||
+		slices.Contains(app.params.IgnoreCacheControlPaths, mappedRequestPath) ||
+		path.Ext(responseItem.Name) == ".html" {
 		w.Header().Set("Cache-Control", "no-store")
 	} else {
 		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d", app.params.CacheControlMaxAge))

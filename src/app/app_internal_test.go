@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
@@ -240,5 +241,164 @@ func TestGetOrCreateResponseItemDirWithCompressionNotFound(t *testing.T) {
 	}
 	if code != http.StatusNotFound {
 		t.Fatalf("expected status %d, got %d", http.StatusNotFound, code)
+	}
+}
+
+func TestMapRequestPath(t *testing.T) {
+	params := param.Params{
+		Directory: ".",
+		BasePath:  "/app",
+	}
+	app := NewApp(&params)
+
+	tests := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{name: "base path exact", in: "/app", want: "/"},
+		{name: "base path with trailing slash", in: "/app/", want: "/"},
+		{name: "asset under base path", in: "/app/assets/main.js", want: "/assets/main.js"},
+		{name: "outside prefix fallback", in: "/assets/main.js", want: "/assets/main.js"},
+		{name: "prefix-like but not matching", in: "/application/main.js", want: "/application/main.js"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := app.mapRequestPath(tt.in)
+			if got != tt.want {
+				t.Fatalf("expected %q, got %q", tt.want, got)
+			}
+		})
+	}
+}
+
+func TestMapRequestPathRootBasePathNoop(t *testing.T) {
+	params := param.Params{
+		Directory: ".",
+		BasePath:  "/",
+	}
+	app := NewApp(&params)
+
+	got := app.mapRequestPath("/app/assets/main.js")
+	if got != "/app/assets/main.js" {
+		t.Fatalf("expected path unchanged, got %q", got)
+	}
+}
+
+func TestMapRequestPathEmptyBasePathNoop(t *testing.T) {
+	params := param.Params{
+		Directory: ".",
+		BasePath:  "",
+	}
+	app := NewApp(&params)
+
+	got := app.mapRequestPath("/app/assets/main.js")
+	if got != "/app/assets/main.js" {
+		t.Fatalf("expected path unchanged, got %q", got)
+	}
+}
+
+func TestHandlerFuncNewBasePathCanonicalIndex(t *testing.T) {
+	dir := t.TempDir()
+	indexPath := filepath.Join(dir, "index.html")
+	if err := os.WriteFile(indexPath, []byte("index"), 0600); err != nil {
+		t.Fatalf("failed to write index: %v", err)
+	}
+
+	params := param.Params{
+		Directory: dir,
+		BasePath:  "/app",
+		SpaMode:   true,
+	}
+	app := NewApp(&params)
+
+	for _, reqPath := range []string{"/app", "/app/"} {
+		req := httptest.NewRequest("GET", reqPath, nil)
+		rec := httptest.NewRecorder()
+		app.HandlerFuncNew(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected status 200 for %s, got %d", reqPath, rec.Code)
+		}
+		if rec.Body.String() != "index" {
+			t.Fatalf("expected index body for %s, got %q", reqPath, rec.Body.String())
+		}
+	}
+}
+
+func TestHandlerFuncNewBasePathAssetMappingAndIgnoreCacheControl(t *testing.T) {
+	dir := t.TempDir()
+	assetPath := filepath.Join(dir, "asset.bin")
+	if err := os.WriteFile(assetPath, []byte("asset"), 0600); err != nil {
+		t.Fatalf("failed to write asset: %v", err)
+	}
+
+	params := param.Params{
+		Directory:               dir,
+		BasePath:                "/app",
+		SpaMode:                 true,
+		IgnoreCacheControlPaths: []string{"/asset.bin"},
+		CacheControlMaxAge:      3600,
+	}
+	app := NewApp(&params)
+
+	req := httptest.NewRequest("GET", "/app/asset.bin", nil)
+	rec := httptest.NewRecorder()
+	app.HandlerFuncNew(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", rec.Code)
+	}
+	if rec.Header().Get("Cache-Control") != "no-store" {
+		t.Fatalf("expected no-store cache control, got %s", rec.Header().Get("Cache-Control"))
+	}
+	if rec.Body.String() != "asset" {
+		t.Fatalf("expected asset body, got %q", rec.Body.String())
+	}
+}
+
+func TestHandlerFuncNewBasePathTraversalRejected(t *testing.T) {
+	dir := t.TempDir()
+	params := param.Params{
+		Directory: dir,
+		BasePath:  "/app",
+		SpaMode:   true,
+	}
+	app := NewApp(&params)
+
+	req := httptest.NewRequest("GET", "/app/../secret.txt", nil)
+	rec := httptest.NewRecorder()
+	app.HandlerFuncNew(rec, req)
+
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("expected 404, got %d", rec.Code)
+	}
+}
+
+func TestHandlerFuncNewBasePathOutsidePrefixFallsBackToRoot(t *testing.T) {
+	dir := t.TempDir()
+	assetPath := filepath.Join(dir, "asset.bin")
+	if err := os.WriteFile(assetPath, []byte("asset"), 0600); err != nil {
+		t.Fatalf("failed to write asset: %v", err)
+	}
+
+	params := param.Params{
+		Directory:          dir,
+		BasePath:           "/app",
+		SpaMode:            true,
+		CacheControlMaxAge: 3600,
+	}
+	app := NewApp(&params)
+
+	req := httptest.NewRequest("GET", "/asset.bin", nil)
+	rec := httptest.NewRecorder()
+	app.HandlerFuncNew(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", rec.Code)
+	}
+	if rec.Body.String() != "asset" {
+		t.Fatalf("expected asset body, got %q", rec.Body.String())
 	}
 }

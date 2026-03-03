@@ -33,8 +33,33 @@ services:
 
 - Use `--port` if you run the container on a non-default port.
 - Enable compression (`--brotli` or `--gzip`) when serving large static bundles.
+- Use `--base-path` when the SPA is mounted under a subpath (for example, `/app`) behind your proxy.
 - For fixed asset paths (for example, a service worker), use `--ignore-cache-control-paths` to avoid CDN caching issues.
 - Add rate limiting at the reverse proxy (Traefik, Nginx, Cloudflare) to mitigate brute-force attempts.
+
+## Subpath Deployment (`--base-path`)
+
+When your reverse proxy exposes the app at a subpath such as `/app`, configure:
+
+```yaml
+services:
+  spa:
+    image: devforth/spa-to-http:latest
+    command: --base-path /app
+```
+
+Behavior:
+- `/app` and `/app/` serve `index.html`
+- `/app/assets/...` maps to assets from the same dist root
+- SPA routes under `/app/...` fall back to `index.html` (with `--spa=true`)
+
+### `--ignore-cache-control-paths` with `--base-path`
+
+Ignore paths are matched against both:
+- Raw incoming path (for example, `/app/sw.js`)
+- Internal mapped path (for example, `/sw.js`)
+
+So either notation works in deployment config.
 
 ## See Also
 

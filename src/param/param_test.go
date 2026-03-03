@@ -19,6 +19,7 @@ func TestContextToParams(t *testing.T) {
 	e_brotli := true
 	e_threshold := int64(1024)
 	e_directory := "example dir"
+	e_base_path := "/app"
 	e_cache_control_max_age := int64(2048)
 	e_spa := true
 	e_ignore_cache_control_paths := []string{"example path1", "example path2"}
@@ -36,6 +37,7 @@ func TestContextToParams(t *testing.T) {
 	f.Bool("brotli", e_brotli, "")
 	f.Int64("threshold", e_threshold, "")
 	f.String("directory", e_directory, "")
+	f.String("base-path", e_base_path, "")
 	f.Int64("cache-max-age", e_cache_control_max_age, "")
 	f.Bool("spa", e_spa, "")
 	f.Var(cli.NewStringSlice(e_ignore_cache_control_paths...), "ignore-cache-control-paths", "")
@@ -78,6 +80,9 @@ func TestContextToParams(t *testing.T) {
 	abs_directory, _ := filepath.Abs(e_directory)
 	if params.Directory != abs_directory {
 		t.Errorf("Got %s, expected %s", params.Directory, e_directory)
+	}
+	if params.BasePath != e_base_path {
+		t.Errorf("Got %s, expected %s", params.BasePath, e_base_path)
 	}
 
 	if params.CacheControlMaxAge != e_cache_control_max_age {
@@ -162,6 +167,7 @@ func TestContextToParamsInvalidBasicAuthFormat(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			f := flag.NewFlagSet("a", flag.ContinueOnError)
 			f.String("directory", "example", "")
+			f.String("base-path", "/", "")
 			f.String("basic-auth", tt.basicAuth, "")
 
 			ctx := cli.NewContext(nil, f, nil)
@@ -183,6 +189,7 @@ func TestContextToParamsInvalidBasicAuthFormat(t *testing.T) {
 func TestContextToParamsBasicAuthDefaultRealm(t *testing.T) {
 	f := flag.NewFlagSet("a", flag.ContinueOnError)
 	f.String("directory", "example", "")
+	f.String("base-path", "/", "")
 	f.String("basic-auth", "user:pass", "")
 
 	ctx := cli.NewContext(nil, f, nil)
@@ -205,6 +212,7 @@ func TestContextToParamsBasicAuthDefaultRealm(t *testing.T) {
 func TestContextToParamsBasicAuthDisabledWhenEmpty(t *testing.T) {
 	f := flag.NewFlagSet("a", flag.ContinueOnError)
 	f.String("directory", "example", "")
+	f.String("base-path", "/", "")
 	f.String("basic-auth", "", "")
 	f.String("basic-auth-realm", "ShouldNotApply", "")
 
@@ -222,5 +230,69 @@ func TestContextToParamsBasicAuthDisabledWhenEmpty(t *testing.T) {
 	}
 	if params.BasicAuthRealm != "ShouldNotApply" {
 		t.Fatalf("expected realm value to be preserved, got %s", params.BasicAuthRealm)
+	}
+}
+
+func TestContextToParamsBasePathDefaultsToRoot(t *testing.T) {
+	f := flag.NewFlagSet("a", flag.ContinueOnError)
+	f.String("directory", "example", "")
+	f.String("base-path", "", "")
+
+	ctx := cli.NewContext(nil, f, nil)
+	params, err := param.ContextToParamsWithAbs(ctx, func(s string) (string, error) {
+		return s, nil
+	})
+	if err != nil {
+		t.Fatalf("expected nil error, got %v", err)
+	}
+	if params.BasePath != "/" {
+		t.Fatalf("expected / base path, got %s", params.BasePath)
+	}
+}
+
+func TestContextToParamsBasePathNormalization(t *testing.T) {
+	tests := []struct {
+		name  string
+		in    string
+		want  string
+		isErr bool
+	}{
+		{name: "without leading slash", in: "app", want: "/app"},
+		{name: "with trailing slash", in: "/app/", want: "/app"},
+		{name: "root path", in: "/", want: "/"},
+		{name: "trim spaces", in: " /spa/ ", want: "/spa"},
+		{name: "has query", in: "/app?a=1", isErr: true},
+		{name: "has fragment", in: "/app#top", isErr: true},
+		{name: "has parent traversal", in: "/../app", isErr: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := flag.NewFlagSet("a", flag.ContinueOnError)
+			f.String("directory", "example", "")
+			f.String("base-path", tt.in, "")
+			ctx := cli.NewContext(nil, f, nil)
+
+			params, err := param.ContextToParamsWithAbs(ctx, func(s string) (string, error) {
+				return s, nil
+			})
+
+			if tt.isErr {
+				if err == nil {
+					t.Fatalf("expected error for base-path %q, got nil", tt.in)
+				}
+				if params != nil {
+					t.Fatalf("expected nil params on error, got %#v", params)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("expected nil error, got %v", err)
+			}
+			if params.BasePath != tt.want {
+				t.Fatalf("expected base-path %q, got %q", tt.want, params.BasePath)
+			}
+		})
 	}
 }
