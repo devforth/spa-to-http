@@ -85,6 +85,40 @@ docker run --rm -p 8080:8080 -v $(pwd)/test/frontend/dist:/code devforth/spa-to-
 
 Open `http://localhost:8080` in your browser.
 
+## Prod-like Local Test: Traefik + Base Path `/qwerty`
+
+Use the local fixture at `test/traefik/docker-compose.base-path.yml` to emulate production routing:
+- `spa-to-http` serves only `${SPA_BASE_PATH}` paths (default: `/qwerty`)
+- non-base-path requests are routed to a different backend (`whoami`)
+- `spa-to-http` image is built locally from this repository
+
+Run from repository root:
+
+```bash
+SPA_BASE_PATH=/qwerty SPA_MODE=true \
+docker compose -f test/traefik/docker-compose.base-path.yml up --build
+```
+
+Verify behavior:
+
+```bash
+# SPA (should return your app index)
+curl -i http://localhost:8081/qwerty
+
+# SPA asset under base path (should be served by spa-to-http)
+curl -i http://localhost:8081/qwerty/vite.svg
+
+# Not SPA (should be routed to whoami, not your app)
+curl -i http://localhost:8081/
+curl -i http://localhost:8081/anything
+```
+
+Stop:
+
+```bash
+docker compose -f test/traefik/docker-compose.base-path.yml down
+```
+
 ## See Also
 
 - [Getting Started](getting-started.md) — Fast Docker onboarding

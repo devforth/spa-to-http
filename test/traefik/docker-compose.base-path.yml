@@ -1,0 +1,35 @@
+services:
+  traefik:
+    image: traefik:v2.11
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:8081"
+    ports:
+      - "8081:8081"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
+  spa:
+    image: spa-to-http-local:test
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    command: --base-path ${SPA_BASE_PATH:-/qwerty} --directory /code --spa=${SPA_MODE:-true}
+    volumes:
+      - "../frontend/dist:/code:ro"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.spa.rule=Host(`localhost`) && (Path(`${SPA_BASE_PATH:-/qwerty}`) || PathPrefix(`${SPA_BASE_PATH:-/qwerty}/`))"
+      - "traefik.http.routers.spa.entrypoints=web"
+      - "traefik.http.routers.spa.priority=100"
+      - "traefik.http.services.spa.loadbalancer.server.port=8080"
+
+  other:
+    image: traefik/whoami:v1.10
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.other.rule=Host(`localhost`) && PathPrefix(`/`)"
+      - "traefik.http.routers.other.entrypoints=web"
+      - "traefik.http.routers.other.priority=1"
+      - "traefik.http.services.other.loadbalancer.server.port=80"
