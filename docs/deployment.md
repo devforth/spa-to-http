@@ -66,4 +66,3 @@ So either notation works in deployment config.
 - [Configuration](configuration.md) — Environment variables and CLI flags
 - [Getting Started](getting-started.md) — Install, build, and run
 - [Development](development.md) — Includes a local Traefik fixture for testing `/qwerty` base-path routing
-- [Benchmarks](benchmarks.md) — spa-to-http vs Nginx

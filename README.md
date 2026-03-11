@@ -19,14 +19,25 @@ If you want to ship a static SPA quickly in Docker without writing Nginx config,
 
 ## Benchmark Highlights
 
-From [`docs/benchmarks.md`](docs/benchmarks.md):
+### spa-to-http vs Nginx
 
-- Startup readiness (100 startups): `1.358s` vs Nginx `1.514s` (`11.5%` faster)
-- Small-file throughput (0.5 KiB HTML): `80,497 req/s` vs `79,214 req/s`
-- Mid-size JS throughput (5 KiB): `66,126 req/s` vs `62,831 req/s` (`5.2%` faster)
-- Docker image size comparison in docs: `13.2 MiB` (`spa-to-http`) vs `142 MiB` (Nginx sample image)
+| | spa-to-http | Nginx |
+|---|---|---|
+| Zero-configuration | ✅ No config files, SPA serving works out of the box | ❌ Requires dedicated config file |
+| Config via env/CLI | ✅ Yes | ❌ No |
+| Docker image size | ✅ 7.54 MiB (v1.1.1) | ❌ 142 MiB (v1.23.1) |
+| Brotli out-of-the-box | ✅ Yes | ❌ Requires module |
 
-See full comparison table and source methodology in [`docs/benchmarks.md`](docs/benchmarks.md).
+Performance numbers and benchmark setup details are from:
+`https://devforth.io/blog/deploy-react-vue-angular-in-docker-simply-and-efficiently-using-spa-to-http-and-traefik/`
+
+| | spa-to-http | Nginx |
+|---|---|---|
+| Average time from container start to HTTP port availability (100 startups) | ✅ 1.358 s (11.5% faster) | ❌ 1.514 s |
+| Requests-per-second on 0.5 KiB HTML file at localhost | ✅ 80497 (1.6% faster) | ❌ 79214 |
+| Transfer speed on 0.5 KiB HTML file at localhost | ❌ 74.16 MiB/sec | ✅ 75.09 MiB/sec (1.3% faster) |
+| Requests-per-second on 5 KiB JS file at localhost | ✅ 66126 (5.2% faster) | ❌ 62831 |
+| Transfer speed on 5 KiB HTML file at localhost | ✅ 301.32 MiB/sec (4.5% faster) | ❌ 288.4 |
 
 ## Get Started in 60 Seconds
 
@@ -115,7 +126,6 @@ For full Docker Compose and Traefik examples, see [`docs/deployment.md`](docs/de
 | Full flag/env reference and examples | [`docs/configuration.md`](docs/configuration.md) |
 | Deployment behind Traefik / reverse proxy | [`docs/deployment.md`](docs/deployment.md) |
 | Internal package layout and request flow | [`docs/architecture.md`](docs/architecture.md) |
-| Detailed benchmark tables and source link | [`docs/benchmarks.md`](docs/benchmarks.md) |
 
 ## License
 

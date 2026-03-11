@@ -1,4 +1,4 @@
-[← Deployment](deployment.md) · [Development](development.md) · [Back to README](../README.md) · [Benchmarks →](benchmarks.md)
+[← Deployment](deployment.md) · [Development](development.md) · [Back to README](../README.md)
 
 # Architecture
 
@@ -32,4 +32,3 @@
 
 - [Configuration](configuration.md) — Environment variables and CLI flags
 - [Getting Started](getting-started.md) — Install, build, and run
-- [Benchmarks](benchmarks.md) — `spa-to-http` vs Nginx
