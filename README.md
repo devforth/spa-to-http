@@ -28,8 +28,7 @@ If you want to ship a static SPA quickly in Docker without writing Nginx config,
 | Docker image size | ✅ 7.54 MiB (v1.1.1) | ❌ 142 MiB (v1.23.1) |
 | Brotli out-of-the-box | ✅ Yes | ❌ Requires module |
 
-Performance numbers and benchmark setup details are from:
-`https://devforth.io/blog/deploy-react-vue-angular-in-docker-simply-and-efficiently-using-spa-to-http-and-traefik/`
+Performance numbers and benchmark setup details are from <https://devforth.io/blog/deploy-react-vue-angular-in-docker-simply-and-efficiently-using-spa-to-http-and-traefik/>
 
 | | spa-to-http | Nginx |
 |---|---|---|
